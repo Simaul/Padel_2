@@ -1,1 +1,2676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Padel Score</title>
 
+<style>
+    :root {
+        --bg: #1a1d21;
+        --card-bg: #262b30;
+        --card-bg-active: #2e3439;
+        --card-border: #333a41;
+        --card-serving-bg: #2a3438;
+        --card-serving-active: #33403f;
+        --accent: #8ab4a0;
+        --accent-light: #a8d5be;
+        --text: #e8eaed;
+        --text-muted: #b8c0c8;
+        --text-dim: #8a929a;
+        --btn-bg: #2e343a;
+        --btn-bg-active: #383f47;
+        --btn-red: #8b4a4a;
+        --btn-red-active: #723c3c;
+        --btn-green: #4a7c59;
+        --btn-green-active: #3d6849;
+        --input-bg: #1a1d21;
+        --input-border: #3a424a;
+        --modal-bg: #262b30;
+        --modal-border: #3a424a;
+        --overlay: rgba(0,0,0,0.7);
+        --timer-bg: #262b30;
+        --timer-border: #333a41;
+        --group-bg: #2a2f35;
+        --group-border: #3a424a;
+        --sets-bar-bg: #262b30;
+        --sets-bar-border: #333a41;
+    }
+
+    body.light-theme {
+        --bg: #f5f2ec;
+        --card-bg: #ffffff;
+        --card-bg-active: #ece8df;
+        --card-border: #e0dcd2;
+        --card-serving-bg: #e8f0ea;
+        --card-serving-active: #d8e6dc;
+        --accent: #4a7c59;
+        --accent-light: #3d6849;
+        --text: #1a1d21;
+        --text-muted: #5a6068;
+        --text-dim: #8a929a;
+        --btn-bg: #e8e4dc;
+        --btn-bg-active: #d8d4cc;
+        --btn-red: #c25a5a;
+        --btn-red-active: #a84a4a;
+        --btn-green: #4a7c59;
+        --btn-green-active: #3d6849;
+        --input-bg: #f5f2ec;
+        --input-border: #d0ccc4;
+        --modal-bg: #ffffff;
+        --modal-border: #e0dcd2;
+        --overlay: rgba(0,0,0,0.4);
+        --timer-bg: #ffffff;
+        --timer-border: #e0dcd2;
+        --group-bg: #f0ece4;
+        --group-border: #e0dcd2;
+        --sets-bar-bg: #ffffff;
+        --sets-bar-border: #e0dcd2;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; min-height: 100%; overscroll-behavior: none; }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        user-select: none;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .app {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 16px 12px 20px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    h1 {
+        text-align: center;
+        margin: 4px 0 16px;
+        font-size: 24px;
+        letter-spacing: 3px;
+        color: var(--accent);
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    /* ============================================================
+       ПОЛОСА СЕТОВ (только для Американо)
+       ============================================================ */
+    .sets-bar {
+        display: none;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 10px;
+        padding: 8px 10px;
+        background: var(--sets-bar-bg);
+        border: 2px solid var(--sets-bar-border);
+        border-radius: 12px;
+    }
+
+    .sets-bar.visible { display: flex; }
+
+    .set-chip {
+        flex: 1;
+        text-align: center;
+        padding: 6px 8px;
+        background: var(--input-bg);
+        border-radius: 8px;
+        border: 1px solid var(--input-border);
+        min-width: 0;
+    }
+
+    .set-chip.current {
+        border-color: var(--accent);
+        background: var(--card-serving-bg);
+    }
+
+    .set-chip-label {
+        font-size: 10px;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+        margin-bottom: 3px;
+    }
+
+    .set-chip-score {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .set-chip.current .set-chip-score {
+        color: var(--accent-light);
+    }
+
+    .scoreboard {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .score-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 22px 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--card-border);
+        transition: border-color 0.2s, background 0.2s, transform 0.05s;
+        min-height: 320px;
+        cursor: pointer;
+        -webkit-user-select: none;
+        user-select: none;
+        position: relative;
+    }
+
+    .score-card:active {
+        transform: scale(0.98);
+        background: var(--card-bg-active);
+    }
+
+    .score-card.serving {
+        border-color: var(--accent);
+        background: var(--card-serving-bg);
+    }
+
+    .score-card.serving:active {
+        background: var(--card-serving-active);
+    }
+
+    .card-top {
+        position: absolute;
+        top: 22px;
+        left: 0;
+        right: 0;
+        padding: 0 12px;
+        text-align: center;
+    }
+
+    .team-label {
+        font-size: 13px;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-weight: 700;
+        margin-bottom: 4px;
+        height: 18px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .server-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text);
+        height: 20px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .serve-indicator {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--accent);
+        letter-spacing: 1px;
+        height: 18px;
+        opacity: 0;
+        transition: opacity 0.2s;
+        text-transform: uppercase;
+        margin-top: 2px;
+    }
+
+    .score-card.serving .serve-indicator { opacity: 1; }
+
+    .serve-numeral {
+        font-weight: 700;
+        margin-left: 4px;
+        color: var(--accent-light);
+    }
+
+    /* Теннисные очки (15/30/40/AD) — крупнее обычных */
+    .points {
+        font-size: 96px;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+        margin-top: 30px;
+    }
+
+    /* Когда очки теннисные (например "AD") — чуть мельче */
+    .points.tennis-text {
+        font-size: 76px;
+        letter-spacing: 0;
+    }
+
+    .score-card.serving .points { color: var(--accent-light); }
+
+    /* Счёт геймов (только в Американо) */
+    .games-score {
+        display: none;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-dim);
+        letter-spacing: 1px;
+        margin-top: 10px;
+        text-transform: uppercase;
+    }
+
+    .games-score.visible { display: block; }
+
+    .games-score .games-num {
+        color: var(--accent-light);
+        font-size: 15px;
+    }
+
+    .timer-bar {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 12px;
+        padding: 10px 16px;
+        background: var(--timer-bg);
+        border: 2px solid var(--timer-border);
+        border-radius: 14px;
+    }
+
+    .timer-bar.visible { display: flex; }
+
+    .timer-display {
+        font-size: 28px;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+        color: var(--text);
+        letter-spacing: 1px;
+        min-width: 90px;
+        text-align: center;
+    }
+
+    .timer-btn {
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: 10px;
+        background: var(--btn-bg);
+        color: var(--text);
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Symbol", sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .timer-btn:active {
+        transform: scale(0.95);
+        background: var(--btn-bg-active);
+    }
+
+    .timer-btn.paused {
+        background: var(--btn-green);
+        color: #fff;
+    }
+
+    .controls {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+    }
+
+    .control-button {
+        flex: 1;
+        border: none;
+        border-radius: 12px;
+        padding: 16px 6px;
+        font-size: 26px;
+        line-height: 1;
+        font-weight: 400;
+        background: var(--btn-bg);
+        color: var(--text);
+        cursor: pointer;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Symbol", sans-serif;
+    }
+
+    .control-button:active {
+        transform: scale(0.97);
+        background: var(--btn-bg-active);
+    }
+
+    .reset {
+        background: var(--btn-red);
+        color: #ffffff;
+    }
+    .reset:active { background: var(--btn-red-active); }
+
+    .message {
+        text-align: center;
+        min-height: 22px;
+        margin-top: 10px;
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--accent-light);
+        letter-spacing: 0.5px;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0; right: 0; bottom: 0; left: 0;
+        background: var(--overlay);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        padding: 20px;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+        background: var(--modal-bg);
+        border-radius: 18px;
+        padding: 22px 18px;
+        width: 100%;
+        max-width: 400px;
+        border: 2px solid var(--modal-border);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal h2 {
+        margin: 0 0 18px;
+        font-size: 18px;
+        text-align: center;
+        color: var(--accent-light);
+        letter-spacing: 1px;
+    }
+
+    .save-match-btn {
+        width: 100%;
+        border: none;
+        border-radius: 14px;
+        padding: 18px 16px;
+        font-size: 16px;
+        font-weight: 800;
+        cursor: pointer;
+        background: var(--btn-green);
+        color: #ffffff;
+        margin-bottom: 14px;
+        letter-spacing: 0.5px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Symbol", sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .save-match-btn:active {
+        transform: scale(0.97);
+        background: var(--btn-green-active);
+    }
+
+    .save-match-btn .btn-icon { font-size: 20px; }
+
+    .menu-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 14px;
+        background: var(--input-bg);
+        border: 2px solid var(--modal-border);
+        border-radius: 12px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .menu-item:active { background: var(--btn-bg); }
+
+    .menu-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .menu-icon {
+        font-size: 20px;
+        line-height: 1;
+        width: 24px;
+        text-align: center;
+        color: var(--accent);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Symbol", sans-serif;
+    }
+
+    .menu-item .arrow {
+        color: var(--text-dim);
+        font-size: 18px;
+    }
+
+    .menu-badge {
+        background: var(--accent);
+        color: var(--bg);
+        font-size: 12px;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-left: 8px;
+    }
+
+    .team-group {
+        background: var(--group-bg);
+        border: 2px solid var(--group-border);
+        border-radius: 14px;
+        padding: 14px;
+        margin-bottom: 14px;
+    }
+
+    .team-group-title {
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--accent-light);
+        margin-bottom: 12px;
+        text-align: center;
+    }
+
+    .field { margin-bottom: 12px; }
+    .field:last-child { margin-bottom: 0; }
+
+    .field label {
+        display: block;
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-bottom: 5px;
+        letter-spacing: 0.5px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .field input {
+        width: 100%;
+        background: var(--input-bg);
+        border: 2px solid var(--input-border);
+        border-radius: 10px;
+        padding: 12px;
+        color: var(--text);
+        font-size: 16px;
+        font-weight: 600;
+        outline: none;
+    }
+
+    .field input:focus { border-color: var(--accent); }
+
+    .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 0;
+        gap: 10px;
+    }
+
+    .toggle-row span {
+        font-size: 14px;
+        color: var(--text);
+        font-weight: 600;
+        flex: 1;
+    }
+
+    .toggle {
+        position: relative;
+        width: 50px;
+        height: 28px;
+        background: var(--input-border);
+        border-radius: 14px;
+        cursor: pointer;
+        transition: background 0.2s;
+        flex-shrink: 0;
+    }
+
+    .toggle::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 22px;
+        height: 22px;
+        background: #ffffff;
+        border-radius: 50%;
+        transition: transform 0.2s;
+    }
+
+    .toggle.on { background: var(--btn-green); }
+    .toggle.on::after { transform: translateX(22px); }
+
+    .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+
+    .modal-buttons button {
+        flex: 1;
+        border: none;
+        border-radius: 12px;
+        padding: 14px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        background: var(--btn-bg);
+        color: var(--text);
+    }
+
+    .modal-buttons .save {
+        background: var(--btn-green);
+        color: #fff;
+    }
+
+    .hidden { display: none !important; }
+
+    .sheet-overlay {
+        position: fixed;
+        top: 0; right: 0; bottom: 0; left: 0;
+        background: var(--overlay);
+        display: none;
+        align-items: flex-end;
+        justify-content: center;
+        z-index: 200;
+    }
+
+    .sheet-overlay.open { display: flex; }
+
+    .sheet {
+        background: var(--modal-bg);
+        border-top-left-radius: 22px;
+        border-top-right-radius: 22px;
+        padding: 22px 20px 30px;
+        width: 100%;
+        max-width: 500px;
+        border-top: 2px solid var(--modal-border);
+        border-left: 2px solid var(--modal-border);
+        border-right: 2px solid var(--modal-border);
+        animation: slideUp 0.25s ease-out;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+    }
+
+    .sheet h2 {
+        margin: 0 0 18px;
+        font-size: 18px;
+        text-align: center;
+        color: var(--accent-light);
+        letter-spacing: 1px;
+    }
+
+    .sheet .btn-close-sheet { margin-top: 0; }
+
+    /* Формат */
+    .format-option {
+        display: flex;
+        flex-direction: column;
+        padding: 16px;
+        background: var(--input-bg);
+        border: 2px solid var(--modal-border);
+        border-radius: 14px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        color: var(--text);
+    }
+
+    .format-option:active { background: var(--btn-bg); }
+    .format-option.selected { border-color: var(--accent); background: var(--card-serving-bg); }
+
+    .format-option .format-title {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--accent-light);
+        margin-bottom: 4px;
+        letter-spacing: 0.5px;
+    }
+
+    .format-option .format-desc {
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.4;
+    }
+
+    .format-option .format-check {
+        float: right;
+        color: var(--accent);
+        font-size: 20px;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    /* Раздел галочек — с отступом сверху */
+    .format-options-group {
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid var(--modal-border);
+    }
+
+    .format-options-group h3 {
+        margin: 0 0 8px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-dim);
+        font-weight: 700;
+    }
+
+    .lang-option {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        background: var(--input-bg);
+        border: 2px solid var(--modal-border);
+        border-radius: 12px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .lang-option:active { background: var(--btn-bg); }
+    .lang-option.selected { border-color: var(--accent); }
+
+    .lang-option .lang-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .lang-option .lang-flag {
+        font-size: 22px;
+        line-height: 1;
+    }
+
+    .lang-option .check {
+        color: var(--accent);
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .theme-option {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        background: var(--input-bg);
+        border: 2px solid var(--modal-border);
+        border-radius: 12px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .theme-option:active { background: var(--btn-bg); }
+    .theme-option.selected { border-color: var(--accent); }
+    .theme-option .check {
+        color: var(--accent);
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .match-card {
+        background: var(--input-bg);
+        border: 2px solid var(--modal-border);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 10px;
+        position: relative;
+    }
+
+    .match-date {
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-bottom: 8px;
+        letter-spacing: 0.5px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .match-format-tag {
+        display: inline-block;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 800;
+        color: var(--accent);
+        background: var(--card-serving-bg);
+        border: 1px solid var(--accent);
+        padding: 2px 7px;
+        border-radius: 6px;
+        margin-bottom: 8px;
+    }
+
+    .match-score {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .match-team-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+    }
+
+    .match-team-name.right { text-align: right; }
+
+    .match-score-num {
+        color: var(--accent-light);
+        font-size: 22px;
+        margin: 0 10px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .match-sets {
+        font-size: 12px;
+        color: var(--text-dim);
+        text-align: center;
+        margin-top: 4px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .match-players {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid var(--modal-border);
+        line-height: 1.5;
+    }
+
+    .match-delete {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text-dim);
+        font-size: 18px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Symbol", sans-serif;
+    }
+
+    .match-delete:active {
+        background: var(--btn-red);
+        color: #fff;
+    }
+
+    .empty-matches {
+        text-align: center;
+        color: var(--text-dim);
+        font-size: 14px;
+        padding: 30px 10px;
+        font-style: italic;
+    }
+
+    .match-action-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+    }
+
+    .match-action-row button {
+        flex: 1;
+        border: none;
+        border-radius: 12px;
+        padding: 14px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        background: var(--btn-green);
+        color: #fff;
+    }
+
+    .match-action-row button.danger { background: var(--btn-red); }
+
+    .match-action-row button:active {
+        transform: scale(0.97);
+        opacity: 0.9;
+    }
+
+    @media (orientation: landscape) {
+        h1 { display: none; }
+
+        .app {
+            max-width: 100%;
+            padding: 10px 16px;
+            min-height: 100vh;
+        }
+
+        .scoreboard {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+        }
+
+        .sets-bar {
+            margin-bottom: 6px;
+            padding: 5px 8px;
+        }
+
+        .set-chip {
+            padding: 4px 6px;
+        }
+
+        .set-chip-label { font-size: 9px; }
+        .set-chip-score { font-size: 14px; }
+
+        .score-card {
+            min-height: 0;
+            padding: 14px 12px;
+        }
+
+        .card-top { top: 16px; }
+
+        .team-label { font-size: 12px; height: 16px; margin-bottom: 3px; }
+        .server-name { font-size: 14px; height: 18px; }
+        .serve-indicator { font-size: 11px; height: 15px; }
+
+        .points {
+            font-size: 80px;
+            margin-top: 26px;
+        }
+
+        .points.tennis-text { font-size: 62px; }
+
+        .games-score {
+            margin-top: 6px;
+            font-size: 11px;
+        }
+
+        .timer-bar {
+            margin-top: 8px;
+            padding: 6px 12px;
+        }
+
+        .timer-display { font-size: 22px; min-width: 70px; }
+        .timer-btn { width: 34px; height: 34px; font-size: 17px; }
+
+        .controls { margin-top: 8px; }
+
+        .control-button {
+            padding: 12px 6px;
+            font-size: 20px;
+        }
+
+        .message {
+            min-height: 0;
+            height: 0;
+            margin: 0;
+            font-size: 0;
+            overflow: hidden;
+        }
+    }
+
+    @media (orientation: landscape) and (max-height: 400px) {
+        .points { font-size: 64px; margin-top: 18px; }
+        .points.tennis-text { font-size: 50px; }
+        .card-top { top: 12px; }
+        .control-button { padding: 10px 6px; font-size: 18px; }
+        .timer-display { font-size: 18px; min-width: 60px; }
+        .timer-btn { width: 30px; height: 30px; font-size: 15px; }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+    <h1 id="appTitle">🎾 Padel Score</h1>
+
+    <!-- Полоса сетов (только Американо) -->
+    <div class="sets-bar" id="setsBar">
+        <div class="set-chip" data-set="0">
+            <div class="set-chip-label" id="setChipLabel0">Set 1</div>
+            <div class="set-chip-score" id="setChipScore0">— : —</div>
+        </div>
+        <div class="set-chip" data-set="1">
+            <div class="set-chip-label" id="setChipLabel1">Set 2</div>
+            <div class="set-chip-score" id="setChipScore1">— : —</div>
+        </div>
+        <div class="set-chip" data-set="2">
+            <div class="set-chip-label" id="setChipLabel2">Set 3</div>
+            <div class="set-chip-score" id="setChipScore2">— : —</div>
+        </div>
+    </div>
+
+    <div class="scoreboard">
+        <div class="score-card" id="card0">
+            <div class="card-top">
+                <div class="team-label" id="teamLabel0">Team 1</div>
+                <div class="server-name" id="server0">—</div>
+                <div class="serve-indicator">
+                    <span id="serveWord0">serve</span><span class="serve-numeral" id="numeral0"></span>
+                </div>
+            </div>
+            <div class="points" id="score0">0</div>
+            <div class="games-score" id="games0"></div>
+        </div>
+
+        <div class="score-card" id="card1">
+            <div class="card-top">
+                <div class="team-label" id="teamLabel1">Team 2</div>
+                <div class="server-name" id="server1">—</div>
+                <div class="serve-indicator">
+                    <span id="serveWord1">serve</span><span class="serve-numeral" id="numeral1"></span>
+                </div>
+            </div>
+            <div class="points" id="score1">0</div>
+            <div class="games-score" id="games1"></div>
+        </div>
+    </div>
+
+    <div class="timer-bar" id="timerBar">
+        <button type="button" class="timer-btn" id="btnTimerToggle" title="Start/Pause">&#x25B6;&#xFE0E;</button>
+        <div class="timer-display" id="timerDisplay">00:00</div>
+        <button type="button" class="timer-btn" id="btnTimerReset" title="Reset">&#x21BA;&#xFE0E;</button>
+    </div>
+
+    <div class="message" id="message"></div>
+
+    <div class="controls">
+        <button type="button" class="control-button hidden" id="btnSwitch" title="Switch serve">S</button>
+        <button type="button" class="control-button" id="btnUndo" title="Undo">&#x21B6;&#xFE0E;</button>
+        <button type="button" class="control-button" id="btnSettings" title="Settings">&#x2699;&#xFE0E;</button>
+        <button type="button" class="control-button reset" id="btnReset" title="New game">&#x21BB;&#xFE0E;</button>
+    </div>
+</div>
+
+<!-- ГЛАВНОЕ МЕНЮ -->
+<div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+        <h2 id="menuTitle">Settings</h2>
+
+        <button type="button" class="save-match-btn" id="btnSaveMatchMenu">
+            <span class="btn-icon">&#x1F4BE;&#xFE0E;</span>
+            <span id="saveMatchLabel">Save match</span>
+        </button>
+
+        <div class="menu-item" id="menuRoster">
+            <span class="menu-left">
+                <span class="menu-icon">&#x1F464;&#xFE0E;</span>
+                <span id="menuRosterLabel">Roster</span>
+            </span>
+            <span class="arrow">&#x203A;</span>
+        </div>
+
+        <div class="menu-item" id="menuMatches">
+            <span class="menu-left">
+                <span class="menu-icon">&#x1F4C4;&#xFE0E;</span>
+                <span id="menuMatchesLabel">Matches</span>
+                <span class="menu-badge hidden" id="matchesCount">0</span>
+            </span>
+            <span class="arrow">&#x203A;</span>
+        </div>
+
+        <div class="menu-item" id="menuLanguage">
+            <span class="menu-left">
+                <span class="menu-icon">&#x1F310;&#xFE0E;</span>
+                <span id="menuLanguageLabel">Language</span>
+            </span>
+            <span class="arrow">&#x203A;</span>
+        </div>
+
+        <div class="menu-item" id="menuFormat">
+            <span class="menu-left">
+                <span class="menu-icon">&#x1F4CB;&#xFE0E;</span>
+                <span id="menuFormatLabel">Format</span>
+            </span>
+            <span class="arrow">&#x203A;</span>
+        </div>
+
+        <div class="menu-item" id="menuInterface">
+            <span class="menu-left">
+                <span class="menu-icon">&#x2699;&#xFE0E;</span>
+                <span id="menuInterfaceLabel">Interface</span>
+            </span>
+            <span class="arrow">&#x203A;</span>
+        </div>
+
+        <div class="menu-item" id="menuTheme">
+            <span class="menu-left">
+                <span class="menu-icon">&#x25D0;&#xFE0E;</span>
+                <span id="menuThemeLabel">Theme</span>
+            </span>
+            <span class="arrow">&#x203A;</span>
+        </div>
+
+        <div class="modal-buttons">
+            <button type="button" id="btnCloseSettings">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- ШТОРКА: СОСТАВ -->
+<div class="sheet-overlay" id="sheetRoster">
+    <div class="sheet">
+
+        <div class="team-group">
+            <div class="team-group-title" id="rosterGroup1">Team 1</div>
+            <div class="field">
+                <label id="labelTeamName0">Team name</label>
+                <input id="teamName0" value="Team 1" maxlength="16">
+            </div>
+            <div class="field">
+                <label id="labelP1">Team 1 — Player 1</label>
+                <input id="p1" value="Player 1" maxlength="16">
+            </div>
+            <div class="field">
+                <label id="labelP2">Team 1 — Player 2</label>
+                <input id="p2" value="Player 2" maxlength="16">
+            </div>
+        </div>
+
+        <div class="team-group">
+            <div class="team-group-title" id="rosterGroup2">Team 2</div>
+            <div class="field">
+                <label id="labelTeamName1">Team name</label>
+                <input id="teamName1" value="Team 2" maxlength="16">
+            </div>
+            <div class="field">
+                <label id="labelP3">Team 2 — Player 3</label>
+                <input id="p3" value="Player 3" maxlength="16">
+            </div>
+            <div class="field">
+                <label id="labelP4">Team 2 — Player 4</label>
+                <input id="p4" value="Player 4" maxlength="16">
+            </div>
+        </div>
+
+        <div class="modal-buttons">
+            <button type="button" class="btn-close-sheet">Done</button>
+        </div>
+    </div>
+</div>
+
+<!-- ШТОРКА: ФОРМАТ -->
+<div class="sheet-overlay" id="sheetFormat">
+    <div class="sheet">
+        <h2 id="sheetFormatTitle">Format</h2>
+
+        <!-- Американо -->
+        <div class="format-option" id="formatAmericano" data-format="americano">
+            <span class="format-check" id="checkFormatAmericano"></span>
+            <div class="format-title" id="formatAmericanoTitle">Americano</div>
+            <div class="format-desc" id="formatAmericanoDesc">Classic scoring: 15/30/40, games, sets</div>
+        </div>
+
+        <!-- Стандартный -->
+        <div class="format-option" id="formatStandard" data-format="standard">
+            <span class="format-check" id="checkFormatStandard"></span>
+            <div class="format-title" id="formatStandardTitle">Standard</div>
+            <div class="format-desc" id="formatStandardDesc">Point-by-point: 1, 2, 3, 4...</div>
+        </div>
+
+        <!-- Галочки для АМЕРИКАНО -->
+        <div class="format-options-group" id="optionsAmericano" style="display:none;">
+            <h3 id="optionsAmericanoTitle">Americano options</h3>
+            <div class="toggle-row">
+                <span id="optGoldenPointLabel">Golden point (at 40:40)</span>
+                <div class="toggle" id="optGoldenPoint"></div>
+            </div>
+            <div class="toggle-row">
+                <span id="optTiebreak7Label">Tie-break to 7 (at 6:6)</span>
+                <div class="toggle" id="optTiebreak7"></div>
+            </div>
+            <div class="toggle-row">
+                <span id="optSuperTiebreakLabel">Super tie-break in final set (to 10)</span>
+                <div class="toggle" id="optSuperTiebreak"></div>
+            </div>
+            <div class="toggle-row">
+                <span id="optBestOf5Label">Best of 5 sets</span>
+                <div class="toggle" id="optBestOf5"></div>
+            </div>
+        </div>
+
+        <!-- Галочки для СТАНДАРТНОГО -->
+        <div class="format-options-group" id="optionsStandard" style="display:none;">
+            <h3 id="optionsStandardTitle">Standard options</h3>
+            <div class="toggle-row">
+                <span id="optAutoServeLabel">Auto serve rotation</span>
+                <div class="toggle" id="optAutoServe"></div>
+            </div>
+            <div class="toggle-row">
+                <span id="optStdGoldenLabel">Golden point</span>
+                <div class="toggle" id="optStdGolden"></div>
+            </div>
+            <div class="field" id="stdGoldenScoreField" style="display:none;">
+                <label id="stdGoldenScoreLabel">Golden point at score (e.g. 10:10)</label>
+                <input id="stdGoldenScoreInput" type="text" placeholder="10:10" maxlength="7">
+            </div>
+        </div>
+
+        <div class="modal-buttons">
+            <button type="button" class="btn-close-sheet">Done</button>
+        </div>
+    </div>
+</div>
+
+<!-- ШТОРКА: ЯЗЫК -->
+<div class="sheet-overlay" id="sheetLanguage">
+    <div class="sheet">
+        <h2 id="sheetLanguageTitle">Language</h2>
+
+        <div class="lang-option" data-lang="en">
+            <span class="lang-left">
+                <span class="lang-flag">🇬🇧</span>
+                <span>English</span>
+            </span>
+            <span class="check" id="checkLangEn"></span>
+        </div>
+        <div class="lang-option" data-lang="es">
+            <span class="lang-left">
+                <span class="lang-flag">🇪🇸</span>
+                <span>Español</span>
+            </span>
+            <span class="check" id="checkLangEs"></span>
+        </div>
+        <div class="lang-option" data-lang="ru">
+            <span class="lang-left">
+                <span class="lang-flag">🇷🇺</span>
+                <span>Русский</span>
+            </span>
+            <span class="check" id="checkLangRu"></span>
+        </div>
+        <div class="lang-option" data-lang="uk">
+            <span class="lang-left">
+                <span class="lang-flag">🇺🇦</span>
+                <span>Українська</span>
+            </span>
+            <span class="check" id="checkLangUk"></span>
+        </div>
+
+        <div class="modal-buttons">
+            <button type="button" class="btn-close-sheet">Done</button>
+        </div>
+    </div>
+</div>
+
+<!-- ШТОРКА: ИНТЕРФЕЙС -->
+<div class="sheet-overlay" id="sheetInterface">
+    <div class="sheet">
+        <h2 id="sheetInterfaceTitle">Interface</h2>
+        <div class="toggle-row">
+            <span id="toggleTimerLabel">Show timer</span>
+            <div class="toggle" id="toggleTimer"></div>
+        </div>
+        <div class="toggle-row">
+            <span id="toggleSwitchLabel">Show serve switch button</span>
+            <div class="toggle" id="toggleSwitch"></div>
+        </div>
+        <div class="modal-buttons">
+            <button type="button" class="btn-close-sheet">Done</button>
+        </div>
+    </div>
+</div>
+
+<!-- ШТОРКА: ТЕМА -->
+<div class="sheet-overlay" id="sheetTheme">
+    <div class="sheet">
+        <h2 id="sheetThemeTitle">Theme</h2>
+        <div class="theme-option" id="themeDark">
+            <span id="themeDarkLabel">Dark</span>
+            <span class="check" id="checkDark">&#x2713;</span>
+        </div>
+        <div class="theme-option" id="themeLight">
+            <span id="themeLightLabel">Light</span>
+            <span class="check" id="checkLight"></span>
+        </div>
+        <div class="modal-buttons">
+            <button type="button" class="btn-close-sheet">Done</button>
+        </div>
+    </div>
+</div>
+
+<!-- ШТОРКА: СПИСОК МАТЧЕЙ -->
+<div class="sheet-overlay" id="sheetMatches">
+    <div class="sheet">
+        <h2 id="sheetMatchesTitle">Saved matches</h2>
+
+        <div id="matchesList"></div>
+
+        <div class="match-action-row" id="clearAllRow" style="display:none;">
+            <button type="button" class="danger" id="btnClearMatches">Clear all</button>
+        </div>
+
+        <div class="modal-buttons">
+            <button type="button" class="btn-close-sheet">Done</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    "use strict";
+
+    var STORAGE_KEY = "padel_score_v17";
+    var MATCHES_KEY = "padel_matches_v1";
+
+    /* ============================================================
+       ПЕРЕВОДЫ
+       ============================================================ */
+    var TRANSLATIONS = {
+        en: {
+            title: "🎾 Padel Score",
+            menuTitle: "Settings",
+            saveMatch: "Save match",
+            menuRoster: "Roster",
+            menuMatches: "Matches",
+            menuLanguage: "Language",
+            menuFormat: "Format",
+            menuInterface: "Interface",
+            menuTheme: "Theme",
+            close: "Close",
+            done: "Done",
+            rosterGroup: "Team",
+            teamNameLabel: "Team name",
+            playerLabel: "Player",
+            teamNameDefault: "Team",
+            playerDefault: "Player",
+            serveWord: "serve",
+            sheetLanguageTitle: "Language",
+            sheetFormatTitle: "Format",
+            sheetInterfaceTitle: "Interface",
+            sheetThemeTitle: "Theme",
+            sheetMatchesTitle: "Saved matches",
+            formatAmericanoTitle: "Americano",
+            formatAmericanoDesc: "Classic scoring: 15/30/40, games, sets",
+            formatStandardTitle: "Standard",
+            formatStandardDesc: "Point-by-point: 1, 2, 3, 4...",
+            optionsAmericanoTitle: "Americano options",
+            optionsStandardTitle: "Standard options",
+            optGoldenPoint: "Golden point (at 40:40)",
+            optTiebreak7: "Tie-break to 7 (at 6:6)",
+            optSuperTiebreak: "Super tie-break in final set (to 10)",
+            optBestOf5: "Best of 5 sets",
+            optAutoServe: "Auto serve rotation",
+            optStdGolden: "Golden point",
+            stdGoldenScoreLabel: "Golden point at score (e.g. 10:10)",
+            toggleTimer: "Show timer",
+            toggleSwitch: "Show serve switch button",
+            themeDark: "Dark",
+            themeLight: "Light",
+            clearAll: "Clear all",
+            matchSaved: "Match saved",
+            nothingToUndo: "Nothing to undo",
+            newGame: "New game",
+            saved: "Saved",
+            allMatchesDeleted: "All matches deleted",
+            noMatches: "No saved matches yet",
+            nothingToSave: "Score 0:0 — nothing to save",
+            newGameConfirm: "Start a new game?",
+            deleteMatchConfirm: "Delete this match?",
+            clearAllConfirm: "Delete all saved matches?",
+            setWord: "Set",
+            gameWord: "Game",
+            matchWon: "Match won!",
+            setWon: "Set won!",
+            tiebreak: "Tie-break!",
+            formatTagAmericano: "Americano",
+            formatTagStandard: "Standard"
+        },
+        es: {
+            title: "🎾 Padel Score",
+            menuTitle: "Ajustes",
+            saveMatch: "Guardar partido",
+            menuRoster: "Alineación",
+            menuMatches: "Partidos",
+            menuLanguage: "Idioma",
+            menuFormat: "Formato",
+            menuInterface: "Interfaz",
+            menuTheme: "Tema",
+            close: "Cerrar",
+            done: "Listo",
+            rosterGroup: "Equipo",
+            teamNameLabel: "Nombre del equipo",
+            playerLabel: "Jugador",
+            teamNameDefault: "Equipo",
+            playerDefault: "Jugador",
+            serveWord: "saque",
+            sheetLanguageTitle: "Idioma",
+            sheetFormatTitle: "Formato",
+            sheetInterfaceTitle: "Interfaz",
+            sheetThemeTitle: "Tema",
+            sheetMatchesTitle: "Partidos guardados",
+            formatAmericanoTitle: "Americano",
+            formatAmericanoDesc: "Puntuación clásica: 15/30/40, juegos, sets",
+            formatStandardTitle: "Estándar",
+            formatStandardDesc: "Punto por punto: 1, 2, 3, 4...",
+            optionsAmericanoTitle: "Opciones Americano",
+            optionsStandardTitle: "Opciones Estándar",
+            optGoldenPoint: "Punto dorado (a 40:40)",
+            optTiebreak7: "Tie-break a 7 (a 6:6)",
+            optSuperTiebreak: "Súper tie-break en set final (a 10)",
+            optBestOf5: "Mejor de 5 sets",
+            optAutoServe: "Rotación automática de saque",
+            optStdGolden: "Punto dorado",
+            stdGoldenScoreLabel: "Punto dorado al marcador (ej. 10:10)",
+            toggleTimer: "Mostrar cronómetro",
+            toggleSwitch: "Mostrar botón de cambio de saque",
+            themeDark: "Oscuro",
+            themeLight: "Claro",
+            clearAll: "Borrar todo",
+            matchSaved: "Partido guardado",
+            nothingToUndo: "Nada que deshacer",
+            newGame: "Nuevo partido",
+            saved: "Guardado",
+            allMatchesDeleted: "Todos los partidos borrados",
+            noMatches: "Aún no hay partidos guardados",
+            nothingToSave: "Marcador 0:0 — no hay nada que guardar",
+            newGameConfirm: "¿Empezar un nuevo partido?",
+            deleteMatchConfirm: "¿Borrar este partido?",
+            clearAllConfirm: "¿Borrar todos los partidos guardados?",
+            setWord: "Set",
+            gameWord: "Juego",
+            matchWon: "¡Partido ganado!",
+            setWon: "¡Set ganado!",
+            tiebreak: "¡Tie-break!",
+            formatTagAmericano: "Americano",
+            formatTagStandard: "Estándar"
+        },
+        ru: {
+            title: "🎾 Padel Score",
+            menuTitle: "Настройки",
+            saveMatch: "Сохранить матч",
+            menuRoster: "Состав",
+            menuMatches: "Матчи",
+            menuLanguage: "Язык",
+            menuFormat: "Формат",
+            menuInterface: "Интерфейс",
+            menuTheme: "Тема",
+            close: "Закрыть",
+            done: "Готово",
+            rosterGroup: "Команда",
+            teamNameLabel: "Название команды",
+            playerLabel: "Игрок",
+            teamNameDefault: "Команда",
+            playerDefault: "Игрок",
+            serveWord: "подача",
+            sheetLanguageTitle: "Язык",
+            sheetFormatTitle: "Формат",
+            sheetInterfaceTitle: "Интерфейс",
+            sheetThemeTitle: "Тема",
+            sheetMatchesTitle: "Сохранённые матчи",
+            formatAmericanoTitle: "Американо",
+            formatAmericanoDesc: "Классический счёт: 15/30/40, геймы, сеты",
+            formatStandardTitle: "Стандартный",
+            formatStandardDesc: "Счёт по очкам: 1, 2, 3, 4...",
+            optionsAmericanoTitle: "Опции Американо",
+            optionsStandardTitle: "Опции Стандартного",
+            optGoldenPoint: "Золотое очко (при 40:40)",
+            optTiebreak7: "Тай-брейк до 7 (при 6:6)",
+            optSuperTiebreak: "Супер-тай-брейк в решающем сете (до 10)",
+            optBestOf5: "Матч до 3 сетов (best of 5)",
+            optAutoServe: "Автопереход подачи",
+            optStdGolden: "Золотое очко",
+            stdGoldenScoreLabel: "Золотое очко при счёте (напр. 10:10)",
+            toggleTimer: "Показывать таймер",
+            toggleSwitch: "Показывать кнопку смены подачи",
+            themeDark: "Тёмная",
+            themeLight: "Светлая",
+            clearAll: "Очистить все",
+            matchSaved: "Матч сохранён",
+            nothingToUndo: "Нечего отменять",
+            newGame: "Новая игра",
+            saved: "Сохранено",
+            allMatchesDeleted: "Все матчи удалены",
+            noMatches: "Пока нет сохранённых матчей",
+            nothingToSave: "Счёт 0:0 — нечего сохранять",
+            newGameConfirm: "Начать новую игру?",
+            deleteMatchConfirm: "Удалить этот матч?",
+            clearAllConfirm: "Удалить все сохранённые матчи?",
+            setWord: "Сет",
+            gameWord: "Гейм",
+            matchWon: "Матч выигран!",
+            setWon: "Сет выигран!",
+            tiebreak: "Тай-брейк!",
+            formatTagAmericano: "Американо",
+            formatTagStandard: "Стандартный"
+        },
+        uk: {
+            title: "🎾 Padel Score",
+            menuTitle: "Налаштування",
+            saveMatch: "Зберегти матч",
+            menuRoster: "Склад",
+            menuMatches: "Матчі",
+            menuLanguage: "Мова",
+            menuFormat: "Формат",
+            menuInterface: "Інтерфейс",
+            menuTheme: "Тема",
+            close: "Закрити",
+            done: "Готово",
+            rosterGroup: "Команда",
+            teamNameLabel: "Назва команди",
+            playerLabel: "Гравець",
+            teamNameDefault: "Команда",
+            playerDefault: "Гравець",
+            serveWord: "подача",
+            sheetLanguageTitle: "Мова",
+            sheetFormatTitle: "Формат",
+            sheetInterfaceTitle: "Інтерфейс",
+            sheetThemeTitle: "Тема",
+            sheetMatchesTitle: "Збережені матчі",
+            formatAmericanoTitle: "Американо",
+            formatAmericanoDesc: "Класичний рахунок: 15/30/40, гейми, сети",
+            formatStandardTitle: "Стандартний",
+            formatStandardDesc: "Рахунок за очками: 1, 2, 3, 4...",
+            optionsAmericanoTitle: "Опції Американо",
+            optionsStandardTitle: "Опції Стандартного",
+            optGoldenPoint: "Золоте очко (при 40:40)",
+            optTiebreak7: "Тай-брейк до 7 (при 6:6)",
+            optSuperTiebreak: "Супер-тай-брейк у вирішальному сеті (до 10)",
+            optBestOf5: "Матч до 3 сетів (best of 5)",
+            optAutoServe: "Автоперехід подачі",
+            optStdGolden: "Золоте очко",
+            stdGoldenScoreLabel: "Золоте очко при рахунку (напр. 10:10)",
+            toggleTimer: "Показувати таймер",
+            toggleSwitch: "Показувати кнопку зміни подачі",
+            themeDark: "Темна",
+            themeLight: "Світла",
+            clearAll: "Очистити всі",
+            matchSaved: "Матч збережено",
+            nothingToUndo: "Нічого скасовувати",
+            newGame: "Нова гра",
+            saved: "Збережено",
+            allMatchesDeleted: "Всі матчі видалено",
+            noMatches: "Поки немає збережених матчів",
+            nothingToSave: "Рахунок 0:0 — немає що зберігати",
+            newGameConfirm: "Почати нову гру?",
+            deleteMatchConfirm: "Видалити цей матч?",
+            clearAllConfirm: "Видалити всі збережені матчі?",
+            setWord: "Сет",
+            gameWord: "Гейм",
+            matchWon: "Матч виграно!",
+            setWon: "Сет виграно!",
+            tiebreak: "Тай-брейк!",
+            formatTagAmericano: "Американо",
+            formatTagStandard: "Стандартний"
+        }
+    };
+
+    /* ============================================================
+       СОСТОЯНИЕ
+       ============================================================ */
+    var players = ["Player 1", "Player 2", "Player 3", "Player 4"];
+    var teamNames = ["Team 1", "Team 2"];
+    var points = [0, 0];
+    var serverIndex = 0;
+    var serveCount = 1;
+    var history = [];
+    var showSwitchButton = false;
+    var showTimer = false;
+    var currentTheme = "dark";
+    var currentLang = "en";
+    var matchStartTime = null;
+
+    /* Формат */
+    var currentFormat = "standard";   // "standard" | "americano"
+    var formatOptions = {
+        americano: {
+            goldenPoint: false,
+            tiebreak7: true,
+            superTiebreak: false,
+            bestOf5: false
+        },
+        standard: {
+            autoServe: true,
+            goldenPoint: false,
+            goldenScore: "10:10"
+        }
+    };
+
+    /* Состояние для АМЕРИКАНО */
+    var tennisPoints = [0, 0];        // очки в текущем гейме: 0-3 (0/15/30/40), 4 = AD
+    var games = [[0, 0], [0, 0], [0, 0]];  // геймы по сетам
+    var currentSet = 0;
+    var matchOver = false;
+    var inTiebreak = false;           // идёт ли тай-брейк (6:6)
+    var tiebreakPoints = [0, 0];      // очки в тай-брейке
+
+    var timerSeconds = 0;
+    var timerInterval = null;
+    var timerRunning = false;
+
+    var order = [0, 2, 1, 3];
+    var romanNumerals = ["", "Ⅰ", "Ⅱ"];
+
+    function $(id) { return document.getElementById(id); }
+
+    function t(key) {
+        var lang = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+        return lang[key] || TRANSLATIONS.en[key] || key;
+    }
+
+    function nextServer(idx) {
+        var pos = order.indexOf(idx);
+        if (pos === -1) pos = 0;
+        return order[(pos + 1) % 4];
+    }
+
+    function serverTeam() {
+        return serverIndex < 2 ? 0 : 1;
+    }
+
+    function saveHistory() {
+        history.push({
+            points: [points[0], points[1]],
+            serverIndex: serverIndex,
+            serveCount: serveCount,
+            tennisPoints: [tennisPoints[0], tennisPoints[1]],
+            games: games.map(function (s) { return [s[0], s[1]]; }),
+            currentSet: currentSet,
+            matchOver: matchOver,
+            inTiebreak: inTiebreak,
+            tiebreakPoints: [tiebreakPoints[0], tiebreakPoints[1]]
+        });
+    }
+
+    /* ============================================================
+       ДОБАВИТЬ ОЧКО — в зависимости от формата
+       ============================================================ */
+    function addPoint(team) {
+        if (matchOver) {
+            showMessage(t("matchWon"));
+            return;
+        }
+        if (matchStartTime === null) matchStartTime = Date.now();
+        saveHistory();
+
+        if (currentFormat === "americano") {
+            addPointAmericano(team);
+        } else {
+            addPointStandard(team);
+        }
+
+        update();
+        saveState();
+    }
+
+    /* ============================================================
+       ЛОГИКА СТАНДАРТНОГО (то, что было)
+       ============================================================ */
+    function addPointStandard(team) {
+        points[team]++;
+
+        /* Проверяем золотое очко */
+        if (formatOptions.standard.goldenPoint) {
+            var targetScore = formatOptions.standard.goldenScore;
+            /* Парсим "10:10" → [10, 10] */
+            var parts = targetScore.split(":");
+            if (parts.length === 2) {
+                var tgt = [parseInt(parts[0], 10) || 0, parseInt(parts[1], 10) || 0];
+                /* Если сейчас счёт совпадает с целевым и обе равны — это золотое очко */
+                if (points[0] === tgt[0] && points[1] === tgt[1]) {
+                    /* Золотое очко: +1 и сразу победа в "гейме" (в стандартном — просто сброс) */
+                    /* Но в стандартном нет "геймов". Значит просто добавляем очко и продолжаем. */
+                    /* Считаем, что золотое очко в стандартном = просто +1 очко команде, ничего особого. */
+                }
+            }
+        }
+
+        /* Автопереход подачи */
+        if (formatOptions.standard.autoServe) {
+            if (serveCount === 1) {
+                serveCount = 2;
+            } else {
+                serveCount = 1;
+                serverIndex = nextServer(serverIndex);
+            }
+        }
+    }
+
+    /* ============================================================
+       ЛОГИКА АМЕРИКАНО
+       ============================================================ */
+    function addPointAmericano(team) {
+        var opp = team === 0 ? 1 : 0;
+
+        /* --- ТАЙ-БРЕЙК --- */
+        if (inTiebreak) {
+            tiebreakPoints[team]++;
+
+            /* Победа в тай-брейке: >= 7 и разница 2 (или >= 10 в супер-тай-брейке) */
+            var target = isSuperTiebreak() ? 10 : 7;
+            if (tiebreakPoints[team] >= target && tiebreakPoints[team] - tiebreakPoints[opp] >= 2) {
+                winSetFromTiebreak(team);
+            } else {
+                /* Смена подачи в тай-брейке: после 1-го очка и далее каждые 2 очка */
+                /* Упрощённо: каждые 2 очка меняем подающего */
+                if ((tiebreakPoints[0] + tiebreakPoints[1]) % 2 === 1) {
+                    serverIndex = nextServer(serverIndex);
+                }
+            }
+            return;
+        }
+
+        /* --- ОБЫЧНЫЙ ГЕЙМ --- */
+        var p = tennisPoints[team];
+        var o = tennisPoints[opp];
+
+        /* Золотое очко при 40:40 */
+        if (formatOptions.americano.goldenPoint && p === 3 && o === 3) {
+            winGame(team);
+            return;
+        }
+
+        /* Обычный теннисный счёт */
+        if (p < 3) {
+            tennisPoints[team]++;
+        } else if (p === 3 && o < 3) {
+            winGame(team);
+        } else if (p === 3 && o === 3) {
+            tennisPoints[team] = 4;   /* AD */
+        } else if (p === 4) {
+            winGame(team);
+        } else if (p === 3 && o === 4) {
+            tennisPoints[opp] = 3;    /* обратно в 40:40 */
+        } else if (p < 3) {
+            tennisPoints[team]++;
+        }
+
+        /* Подача: в теннисе подают целый гейм, но мы делаем как в стандартном —
+           после каждого очка (упрощение для падела) */
+    }
+
+    function isSuperTiebreak() {
+        /* Супер-тай-брейк играется в решающем сете при best of 3 (3-й сет) или best of 5 (5-й) */
+        if (!formatOptions.americano.superTiebreak) return false;
+        if (formatOptions.americano.bestOf5) {
+            return currentSet === 4;
+        }
+        return currentSet === 2;
+    }
+
+    function winGame(team) {
+        games[currentSet][team]++;
+        tennisPoints = [0, 0];
+
+        /* Победа в сете: >= 6 и разница 2 (кроме тай-брейка) */
+        var myGames = games[currentSet][team];
+        var oppGames = games[currentSet][1 - team];
+
+        if (myGames >= 6 && myGames - oppGames >= 2) {
+            winSet(team);
+            return;
+        }
+
+        /* 6:6 → тай-брейк (или супер-тай-брейк) */
+        if (myGames === 6 && oppGames === 6) {
+            if (isSuperTiebreak()) {
+                inTiebreak = true;
+                tiebreakPoints = [0, 0];
+                showMessage(t("tiebreak"));
+            } else if (formatOptions.americano.tiebreak7) {
+                inTiebreak = true;
+                tiebreakPoints = [0, 0];
+                showMessage(t("tiebreak"));
+            } else {
+                /* Без тай-брейка — играем до разницы 2 */
+                /* Ничего не делаем, продолжаем */
+            }
+        }
+
+        /* Подача переходит (следующий игрок) */
+        serverIndex = nextServer(serverIndex);
+    }
+
+    function winSetFromTiebreak(team) {
+        /* В тай-брейке гейм считается как 7:6 в пользу победителя */
+        games[currentSet][team]++;
+        inTiebreak = false;
+        tiebreakPoints = [0, 0];
+        winSet(team);
+    }
+
+    function winSet(team) {
+        /* Проверяем, выигран ли матч */
+        var setsWon = 0;
+        for (var i = 0; i < games.length; i++) {
+            if (games[i][team] > games[i][1 - team]) setsWon++;
+        }
+
+        var needed = formatOptions.americano.bestOf5 ? 3 : 2;
+
+        if (setsWon >= needed) {
+            matchOver = true;
+            showMessage(t("matchWon"));
+            return;
+        }
+
+        /* Переход к следующему сету */
+        if (currentSet < 2) {
+            currentSet++;
+            tennisPoints = [0, 0];
+            tiebreakPoints = [0, 0];
+            inTiebreak = false;
+            showMessage(t("setWon") + " " + t("setWord") + " " + currentSet);
+        } else {
+            /* Все 3 сета закончились, но матч не выигран (2:1 или 1:2)? Не должно быть, но на всякий */
+            matchOver = true;
+            showMessage(t("matchWon"));
+        }
+
+        serverIndex = nextServer(serverIndex);
+    }
+
+    /* Текстовое представление теннисного очка */
+    function tennisPointText(value, opponent) {
+        if (value >= 4 && value - opponent >= 1) return "AD";
+        if (value > 3) return "40";
+        return ["0", "15", "30", "40"][value] || "0";
+    }
+
+    function switchServe() {
+        saveHistory();
+        serveCount = 1;
+        serverIndex = nextServer(serverIndex);
+        update();
+        saveState();
+    }
+
+    function undo() {
+        if (history.length === 0) {
+            showMessage(t("nothingToUndo"));
+            return;
+        }
+        var prev = history.pop();
+        points = prev.points;
+        serverIndex = prev.serverIndex;
+        serveCount = prev.serveCount;
+        tennisPoints = prev.tennisPoints;
+        games = prev.games;
+        currentSet = prev.currentSet;
+        matchOver = prev.matchOver;
+        inTiebreak = prev.inTiebreak;
+        tiebreakPoints = prev.tiebreakPoints;
+        update();
+        saveState();
+    }
+
+    function resetGame() {
+        if (!confirm(t("newGameConfirm"))) return;
+        points = [0, 0];
+        serverIndex = 0;
+        serveCount = 1;
+        history = [];
+        matchStartTime = null;
+        tennisPoints = [0, 0];
+        games = [[0, 0], [0, 0], [0, 0]];
+        currentSet = 0;
+        matchOver = false;
+        inTiebreak = false;
+        tiebreakPoints = [0, 0];
+        update();
+        saveState();
+        showMessage(t("newGame"));
+    }
+
+    /* Дата/время */
+    function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+
+    function formatDateTime(ts) {
+        var d = new Date(ts);
+        return pad2(d.getDate()) + "." + pad2(d.getMonth() + 1) + "." +
+               ("" + d.getFullYear()).slice(-2) + " " +
+               pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+    }
+
+    function formatTimeOnly(ts) {
+        var d = new Date(ts);
+        return pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+    }
+
+    /* Матчи */
+    function loadMatches() {
+        try {
+            var raw = localStorage.getItem(MATCHES_KEY);
+            if (!raw) return [];
+            var arr = JSON.parse(raw);
+            return Array.isArray(arr) ? arr : [];
+        } catch (e) { return []; }
+    }
+
+    function saveMatches(matches) {
+        try {
+            localStorage.setItem(MATCHES_KEY, JSON.stringify(matches));
+        } catch (e) { console.warn("save matches error", e); }
+    }
+
+    function saveCurrentMatch() {
+        var hasScore = false;
+        if (currentFormat === "americano") {
+            hasScore = games.some(function (s) { return s[0] > 0 || s[1] > 0; }) ||
+                       tennisPoints[0] > 0 || tennisPoints[1] > 0;
+        } else {
+            hasScore = points[0] > 0 || points[1] > 0;
+        }
+
+        if (!hasScore) {
+            showMessage(t("nothingToSave"));
+            return;
+        }
+
+        var now = Date.now();
+        var start = matchStartTime || now;
+
+        var match = {
+            id: now,
+            startTime: start,
+            endTime: now,
+            teamNames: [teamNames[0], teamNames[1]],
+            players: [players[0], players[1], players[2], players[3]],
+            points: [points[0], points[1]],
+            format: currentFormat
+        };
+
+        if (currentFormat === "americano") {
+            match.games = games.map(function (s) { return [s[0], s[1]]; });
+            match.tennisPoints = [tennisPoints[0], tennisPoints[1]];
+            match.currentSet = currentSet;
+            match.formatOptions = {
+                goldenPoint: formatOptions.americano.goldenPoint,
+                tiebreak7: formatOptions.americano.tiebreak7,
+                superTiebreak: formatOptions.americano.superTiebreak,
+                bestOf5: formatOptions.americano.bestOf5
+            };
+        } else {
+            match.formatOptions = {
+                autoServe: formatOptions.standard.autoServe,
+                goldenPoint: formatOptions.standard.goldenPoint,
+                goldenScore: formatOptions.standard.goldenScore
+            };
+        }
+
+        var matches = loadMatches();
+        matches.unshift(match);
+        saveMatches(matches);
+
+        renderMatchesList();
+        updateMatchesCount();
+        showMessage(t("matchSaved"));
+    }
+
+    function deleteMatch(id) {
+        if (!confirm(t("deleteMatchConfirm"))) return;
+        var matches = loadMatches();
+        matches = matches.filter(function (m) { return m.id !== id; });
+        saveMatches(matches);
+        renderMatchesList();
+        updateMatchesCount();
+    }
+
+    function clearAllMatches() {
+        if (!confirm(t("clearAllConfirm"))) return;
+        saveMatches([]);
+        renderMatchesList();
+        updateMatchesCount();
+        showMessage(t("allMatchesDeleted"));
+    }
+
+    function renderMatchesList() {
+        var list = $("matchesList");
+        var matches = loadMatches();
+
+        if (matches.length === 0) {
+            list.innerHTML = '<div class="empty-matches">' + t("noMatches") + '</div>';
+            $("clearAllRow").style.display = "none";
+            return;
+        }
+
+        $("clearAllRow").style.display = "flex";
+
+        var html = "";
+        for (var i = 0; i < matches.length; i++) {
+            var m = matches[i];
+            var dateStr = formatDateTime(m.startTime) + " → " + formatTimeOnly(m.endTime);
+            var players1 = m.players[0] + ", " + m.players[1];
+            var players2 = m.players[2] + ", " + m.players[3];
+
+            var formatTag = m.format === "americano"
+                ? t("formatTagAmericano")
+                : t("formatTagStandard");
+
+            html += '<div class="match-card">';
+            html += '<button type="button" class="match-delete" data-id="' + m.id + '" title="Delete">&#x2715;&#xFE0E;</button>';
+            html += '<div class="match-date">' + dateStr + '</div>';
+            html += '<div class="match-format-tag">' + formatTag + '</div>';
+
+            /* Счёт: для Американо — по сетам, для Стандартного — просто очки */
+            if (m.format === "americano" && m.games) {
+                /* Считаем выигранные сеты */
+                var setsA = 0, setsB = 0;
+                var setsStr = [];
+                for (var j = 0; j < m.games.length; j++) {
+                    var a = m.games[j][0], b = m.games[j][1];
+                    if (a > b) setsA++;
+                    else if (b > a) setsB++;
+                    if (a > 0 || b > 0 || j <= m.currentSet) {
+                        setsStr.push(a + "-" + b);
+                    }
+                }
+                html += '<div class="match-score">';
+                html += '<span class="match-team-name">' + escapeHtml(m.teamNames[0]) + '</span>';
+                html += '<span class="match-score-num">' + setsA + ' : ' + setsB + '</span>';
+                html += '<span class="match-team-name right">' + escapeHtml(m.teamNames[1]) + '</span>';
+                html += '</div>';
+                if (setsStr.length > 0) {
+                    html += '<div class="match-sets">' + setsStr.join('  ') + '</div>';
+                }
+            } else {
+                html += '<div class="match-score">';
+                html += '<span class="match-team-name">' + escapeHtml(m.teamNames[0]) + '</span>';
+                html += '<span class="match-score-num">' + (m.points ? m.points[0] : 0) + ' : ' + (m.points ? m.points[1] : 0) + '</span>';
+                html += '<span class="match-team-name right">' + escapeHtml(m.teamNames[1]) + '</span>';
+                html += '</div>';
+            }
+
+            html += '<div class="match-players">' + escapeHtml(players1) + ' — ' + escapeHtml(players2) + '</div>';
+            html += '</div>';
+        }
+
+        list.innerHTML = html;
+
+        var deleteButtons = list.querySelectorAll(".match-delete");
+        for (var k = 0; k < deleteButtons.length; k++) {
+            (function (btn) {
+                btn.addEventListener("click", function () {
+                    var id = parseInt(btn.getAttribute("data-id"), 10);
+                    deleteMatch(id);
+                });
+            })(deleteButtons[k]);
+        }
+    }
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+
+    function updateMatchesCount() {
+        var matches = loadMatches();
+        var badge = $("matchesCount");
+        if (matches.length === 0) {
+            badge.classList.add("hidden");
+        } else {
+            badge.textContent = matches.length;
+            badge.classList.remove("hidden");
+        }
+    }
+
+    function update() {
+        var st = serverTeam();
+        var name = players[serverIndex];
+        var numeral = romanNumerals[serveCount];
+
+        $("teamLabel0").textContent = teamNames[0];
+        $("teamLabel1").textContent = teamNames[1];
+
+        $("server0").textContent = st === 0 ? name : "—";
+        $("server1").textContent = st === 1 ? name : "—";
+
+        /* Римская цифра только в Стандартном */
+        if (currentFormat === "standard") {
+            $("numeral0").textContent = st === 0 ? numeral : "";
+            $("numeral1").textContent = st === 1 ? numeral : "";
+        } else {
+            $("numeral0").textContent = "";
+            $("numeral1").textContent = "";
+        }
+
+        /* Подсветка */
+        if (st === 0) {
+            $("card0").classList.add("serving");
+            $("card1").classList.remove("serving");
+        } else {
+            $("card1").classList.add("serving");
+            $("card0").classList.remove("serving");
+        }
+
+        /* Отображение очков */
+        if (currentFormat === "americano") {
+            /* Полоса сетов */
+            $("setsBar").classList.add("visible");
+
+            /* Тай-брейк или обычные очки */
+            if (inTiebreak) {
+                $("score0").textContent = tiebreakPoints[0];
+                $("score1").textContent = tiebreakPoints[1];
+                $("score0").classList.remove("tennis-text");
+                $("score1").classList.remove("tennis-text");
+            } else {
+                var t0 = tennisPointText(tennisPoints[0], tennisPoints[1]);
+                var t1 = tennisPointText(tennisPoints[1], tennisPoints[0]);
+                $("score0").textContent = t0;
+                $("score1").textContent = t1;
+                /* Если "0", "15", "30", "40" — обычный размер; если "AD" — тоже ок */
+                $("score0").classList.add("tennis-text");
+                $("score1").classList.add("tennis-text");
+            }
+
+            /* Счёт геймов текущего сета */
+            $("games0").classList.add("visible");
+            $("games1").classList.add("visible");
+            $("games0").innerHTML = t("gameWord") + ': <span class="games-num">' + games[currentSet][0] + ' : ' + games[currentSet][1] + '</span>';
+            $("games1").innerHTML = "";
+
+            /* Полоса сетов */
+            var totalSets = formatOptions.americano.bestOf5 ? 5 : 3;
+            updateSetsBar(totalSets);
+
+            /* Очки в стандартном всё равно обновляем, чтобы не было пустоты */
+            $("numeral0").textContent = "";
+            $("numeral1").textContent = "";
+        } else {
+            /* Стандартный */
+            $("setsBar").classList.remove("visible");
+            $("games0").classList.remove("visible");
+            $("games1").classList.remove("visible");
+            $("score0").classList.remove("tennis-text");
+            $("score1").classList.remove("tennis-text");
+            $("score0").textContent = points[0];
+            $("score1").textContent = points[1];
+        }
+
+        /* Кнопка смены подачи */
+        if (showSwitchButton) {
+            $("btnSwitch").classList.remove("hidden");
+        } else {
+            $("btnSwitch").classList.add("hidden");
+        }
+
+        /* Таймер */
+        if (showTimer) {
+            $("timerBar").classList.add("visible");
+        } else {
+            $("timerBar").classList.remove("visible");
+        }
+    }
+
+    function updateSetsBar(totalSets) {
+        /* Показываем нужное число чипов (3 или 5), остальные прячем */
+        var chips = document.querySelectorAll(".set-chip");
+        for (var i = 0; i < chips.length; i++) {
+            if (i < totalSets) {
+                chips[i].style.display = "";
+            } else {
+                chips[i].style.display = "none";
+            }
+
+            /* Текущий сет — подсветка */
+            if (i === currentSet) {
+                chips[i].classList.add("current");
+            } else {
+                chips[i].classList.remove("current");
+            }
+
+            /* Оценки */
+            var a = games[i][0];
+            var b = games[i][1];
+            if (i > currentSet && a === 0 && b === 0) {
+                $("setChipScore" + i).textContent = "— : —";
+            } else {
+                $("setChipScore" + i).textContent = a + " : " + b;
+            }
+        }
+    }
+
+    /* ============================================================
+       ПРИМЕНЕНИЕ ПЕРЕВОДОВ
+       ============================================================ */
+    function applyTranslations() {
+        $("serveWord0").textContent = t("serveWord");
+        $("serveWord1").textContent = t("serveWord");
+
+        $("menuTitle").textContent = t("menuTitle");
+        $("saveMatchLabel").textContent = t("saveMatch");
+        $("menuRosterLabel").textContent = t("menuRoster");
+        $("menuMatchesLabel").textContent = t("menuMatches");
+        $("menuLanguageLabel").textContent = t("menuLanguage");
+        $("menuFormatLabel").textContent = t("menuFormat");
+        $("menuInterfaceLabel").textContent = t("menuInterface");
+        $("menuThemeLabel").textContent = t("menuTheme");
+        $("btnCloseSettings").textContent = t("close");
+
+        $("rosterGroup1").textContent = t("rosterGroup") + " 1";
+        $("rosterGroup2").textContent = t("rosterGroup") + " 2";
+        $("labelTeamName0").textContent = t("teamNameLabel");
+        $("labelTeamName1").textContent = t("teamNameLabel");
+        $("labelP1").textContent = t("rosterGroup") + " 1 — " + t("playerLabel") + " 1";
+        $("labelP2").textContent = t("rosterGroup") + " 1 — " + t("playerLabel") + " 2";
+        $("labelP3").textContent = t("rosterGroup") + " 2 — " + t("playerLabel") + " 3";
+        $("labelP4").textContent = t("rosterGroup") + " 2 — " + t("playerLabel") + " 4";
+
+        $("sheetLanguageTitle").textContent = t("sheetLanguageTitle");
+        $("sheetFormatTitle").textContent = t("sheetFormatTitle");
+        $("sheetInterfaceTitle").textContent = t("sheetInterfaceTitle");
+        $("sheetThemeTitle").textContent = t("sheetThemeTitle");
+        $("sheetMatchesTitle").textContent = t("sheetMatchesTitle");
+
+        $("formatAmericanoTitle").textContent = t("formatAmericanoTitle");
+        $("formatAmericanoDesc").textContent = t("formatAmericanoDesc");
+        $("formatStandardTitle").textContent = t("formatStandardTitle");
+        $("formatStandardDesc").textContent = t("formatStandardDesc");
+
+        $("optionsAmericanoTitle").textContent = t("optionsAmericanoTitle");
+        $("optionsStandardTitle").textContent = t("optionsStandardTitle");
+
+        $("optGoldenPointLabel").textContent = t("optGoldenPoint");
+        $("optTiebreak7Label").textContent = t("optTiebreak7");
+        $("optSuperTiebreakLabel").textContent = t("optSuperTiebreak");
+        $("optBestOf5Label").textContent = t("optBestOf5");
+        $("optAutoServeLabel").textContent = t("optAutoServe");
+        $("optStdGoldenLabel").textContent = t("optStdGolden");
+        $("stdGoldenScoreLabel").textContent = t("stdGoldenScoreLabel");
+
+        $("toggleTimerLabel").textContent = t("toggleTimer");
+        $("toggleSwitchLabel").textContent = t("toggleSwitch");
+
+        $("themeDarkLabel").textContent = t("themeDark");
+        $("themeLightLabel").textContent = t("themeLight");
+
+        $("btnClearMatches").textContent = t("clearAll");
+
+        var doneButtons = document.querySelectorAll(".btn-close-sheet");
+        for (var i = 0; i < doneButtons.length; i++) {
+            doneButtons[i].textContent = t("done");
+        }
+
+        /* Метки сетов в полосе */
+        for (var s = 0; s < 3; s++) {
+            $("setChipLabel" + s).textContent = t("setWord") + " " + (s + 1);
+        }
+
+        renderMatchesList();
+    }
+
+    /* Перевод шаблонных значений */
+    function isDefaultTeamName(value, teamNum) {
+        var patterns = ["Команда " + teamNum, "Team " + teamNum, "Equipo " + teamNum];
+        return patterns.indexOf(value) !== -1;
+    }
+
+    function isDefaultPlayerName(value, playerNum) {
+        var patterns = ["Игрок " + playerNum, "Player " + playerNum, "Jugador " + playerNum, "Гравець " + playerNum];
+        return patterns.indexOf(value) !== -1;
+    }
+
+    function translateDefaultValues() {
+        if (isDefaultTeamName(teamNames[0], 1)) teamNames[0] = t("teamNameDefault") + " 1";
+        if (isDefaultTeamName(teamNames[1], 2)) teamNames[1] = t("teamNameDefault") + " 2";
+        if (isDefaultPlayerName(players[0], 1)) players[0] = t("playerDefault") + " 1";
+        if (isDefaultPlayerName(players[1], 2)) players[1] = t("playerDefault") + " 2";
+        if (isDefaultPlayerName(players[2], 3)) players[2] = t("playerDefault") + " 3";
+        if (isDefaultPlayerName(players[3], 4)) players[3] = t("playerDefault") + " 4";
+
+        $("teamName0").value = teamNames[0];
+        $("teamName1").value = teamNames[1];
+        $("p1").value = players[0];
+        $("p2").value = players[1];
+        $("p3").value = players[2];
+        $("p4").value = players[3];
+    }
+
+    function showMessage(text) {
+        var el = $("message");
+        el.textContent = text;
+        setTimeout(function () {
+            if (el.textContent === text) el.textContent = "";
+        }, 2000);
+    }
+
+    /* Таймер */
+    function formatTime(sec) {
+        var m = Math.floor(sec / 60);
+        var s = sec % 60;
+        return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+    }
+
+    function renderTimer() {
+        $("timerDisplay").textContent = formatTime(timerSeconds);
+    }
+
+    function startTimer() {
+        if (timerRunning) return;
+        timerRunning = true;
+        $("btnTimerToggle").innerHTML = "&#x23F8;&#xFE0E;";
+        $("btnTimerToggle").classList.add("paused");
+        timerInterval = setInterval(function () {
+            timerSeconds++;
+            renderTimer();
+        }, 1000);
+    }
+
+    function pauseTimer() {
+        if (!timerRunning) return;
+        timerRunning = false;
+        $("btnTimerToggle").innerHTML = "&#x25B6;&#xFE0E;";
+        $("btnTimerToggle").classList.remove("paused");
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+
+    function toggleTimer() {
+        if (timerRunning) pauseTimer();
+        else startTimer();
+    }
+
+    function resetTimer() {
+        pauseTimer();
+        timerSeconds = 0;
+        renderTimer();
+    }
+
+    /* Язык */
+    function applyLanguage(lang) {
+        currentLang = lang;
+        document.documentElement.lang = lang;
+
+        var codes = ["En", "Es", "Ru", "Uk"];
+        var langCodes = ["en", "es", "ru", "uk"];
+        for (var i = 0; i < codes.length; i++) {
+            $("checkLang" + codes[i]).textContent = (currentLang === langCodes[i]) ? "✓" : "";
+        }
+
+        var langOpts = document.querySelectorAll(".lang-option");
+        for (var j = 0; j < langOpts.length; j++) {
+            langOpts[j].classList.toggle("selected", langOpts[j].getAttribute("data-lang") === lang);
+        }
+
+        applyTranslations();
+        translateDefaultValues();
+        update();
+        saveState();
+    }
+
+    /* Формат */
+    function applyFormatUI() {
+        /* Подсветка выбранного формата */
+        $("formatAmericano").classList.toggle("selected", currentFormat === "americano");
+        $("formatStandard").classList.toggle("selected", currentFormat === "standard");
+        $("checkFormatAmericano").textContent = currentFormat === "americano" ? "✓" : "";
+        $("checkFormatStandard").textContent = currentFormat === "standard" ? "✓" : "";
+
+        /* Показ опций в зависимости от формата */
+        if (currentFormat === "americano") {
+            $("optionsAmericano").style.display = "block";
+            $("optionsStandard").style.display = "none";
+        } else {
+            $("optionsAmericano").style.display = "none";
+            $("optionsStandard").style.display = "block";
+        }
+
+        /* Тумблеры для Американо */
+        $("optGoldenPoint").classList.toggle("on", formatOptions.americano.goldenPoint);
+        $("optTiebreak7").classList.toggle("on", formatOptions.americano.tiebreak7);
+        $("optSuperTiebreak").classList.toggle("on", formatOptions.americano.superTiebreak);
+        $("optBestOf5").classList.toggle("on", formatOptions.americano.bestOf5);
+
+        /* Тумблеры для Стандартного */
+        $("optAutoServe").classList.toggle("on", formatOptions.standard.autoServe);
+        $("optStdGolden").classList.toggle("on", formatOptions.standard.goldenPoint);
+        $("stdGoldenScoreInput").value = formatOptions.standard.goldenScore;
+
+        /* Показ поля для счёта золотого очка */
+        $("stdGoldenScoreField").style.display =
+            formatOptions.standard.goldenPoint ? "block" : "none";
+    }
+
+    function setFormat(fmt) {
+        if (currentFormat === fmt) return;
+        if (!confirm(t("newGameConfirm"))) return;
+
+        currentFormat = fmt;
+        /* Сброс игрового состояния */
+        points = [0, 0];
+        tennisPoints = [0, 0];
+        games = [[0, 0], [0, 0], [0, 0]];
+        currentSet = 0;
+        matchOver = false;
+        inTiebreak = false;
+        tiebreakPoints = [0, 0];
+        serverIndex = 0;
+        serveCount = 1;
+        history = [];
+        matchStartTime = null;
+
+        applyFormatUI();
+        update();
+        saveState();
+        showMessage(t("saved"));
+    }
+
+    /* Настройки */
+    function openSettings() {
+        $("teamName0").value = teamNames[0];
+        $("teamName1").value = teamNames[1];
+        $("p1").value = players[0];
+        $("p2").value = players[1];
+        $("p3").value = players[2];
+        $("p4").value = players[3];
+        $("toggleTimer").classList.toggle("on", showTimer);
+        $("toggleSwitch").classList.toggle("on", showSwitchButton);
+        updateThemeChecks();
+        updateMatchesCount();
+        applyFormatUI();
+        $("settingsModal").classList.add("open");
+    }
+
+    function closeSettings() {
+        $("settingsModal").classList.remove("open");
+        saveAllSettings();
+    }
+
+    function saveAllSettings() {
+        teamNames[0] = $("teamName0").value.trim() || (t("teamNameDefault") + " 1");
+        teamNames[1] = $("teamName1").value.trim() || (t("teamNameDefault") + " 2");
+        players[0] = $("p1").value.trim() || (t("playerDefault") + " 1");
+        players[1] = $("p2").value.trim() || (t("playerDefault") + " 2");
+        players[2] = $("p3").value.trim() || (t("playerDefault") + " 3");
+        players[3] = $("p4").value.trim() || (t("playerDefault") + " 4");
+        update();
+        saveState();
+    }
+
+    function openSheet(id) {
+        if (id === "sheetMatches") {
+            renderMatchesList();
+            updateMatchesCount();
+        }
+        if (id === "sheetFormat") {
+            applyFormatUI();
+        }
+        $(id).classList.add("open");
+    }
+
+    function closeSheet(id) {
+        $(id).classList.remove("open");
+        if (id === "sheetInterface") {
+            showTimer = $("toggleTimer").classList.contains("on");
+            showSwitchButton = $("toggleSwitch").classList.contains("on");
+            update();
+            saveState();
+        }
+        if (id === "sheetRoster") {
+            saveAllSettings();
+        }
+        if (id === "sheetFormat") {
+            /* Сохраняем введённый счёт золотого очка */
+            formatOptions.standard.goldenScore = $("stdGoldenScoreInput").value.trim() || "10:10";
+            saveState();
+        }
+    }
+
+    /* Тема */
+    function applyTheme() {
+        if (currentTheme === "light") {
+            document.body.classList.add("light-theme");
+        } else {
+            document.body.classList.remove("light-theme");
+        }
+        updateThemeChecks();
+    }
+
+    function updateThemeChecks() {
+        $("checkDark").textContent = currentTheme === "dark" ? "✓" : "";
+        $("checkLight").textContent = currentTheme === "light" ? "✓" : "";
+        $("themeDark").classList.toggle("selected", currentTheme === "dark");
+        $("themeLight").classList.toggle("selected", currentTheme === "light");
+    }
+
+    function setTheme(theme) {
+        currentTheme = theme;
+        applyTheme();
+        saveState();
+    }
+
+    /* Сохранение */
+    function saveState() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                players: players,
+                teamNames: teamNames,
+                points: points,
+                serverIndex: serverIndex,
+                serveCount: serveCount,
+                showSwitchButton: showSwitchButton,
+                showTimer: showTimer,
+                currentTheme: currentTheme,
+                currentLang: currentLang,
+                matchStartTime: matchStartTime,
+                currentFormat: currentFormat,
+                formatOptions: formatOptions,
+                tennisPoints: tennisPoints,
+                games: games,
+                currentSet: currentSet,
+                matchOver: matchOver,
+                inTiebreak: inTiebreak,
+                tiebreakPoints: tiebreakPoints
+            }));
+        } catch (e) { console.warn("save error", e); }
+    }
+
+    function loadState() {
+        try {
+            var raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return;
+            var s = JSON.parse(raw);
+            if (Array.isArray(s.players) && s.players.length === 4) players = s.players;
+            if (Array.isArray(s.teamNames) && s.teamNames.length === 2) teamNames = s.teamNames;
+            if (Array.isArray(s.points) && s.points.length === 2) points = s.points;
+            if (typeof s.serverIndex === "number") serverIndex = s.serverIndex;
+            if (typeof s.serveCount === "number") serveCount = s.serveCount;
+            if (typeof s.showSwitchButton === "boolean") showSwitchButton = s.showSwitchButton;
+            if (typeof s.showTimer === "boolean") showTimer = s.showTimer;
+            if (typeof s.currentTheme === "string") currentTheme = s.currentTheme;
+            if (typeof s.currentLang === "string") currentLang = s.currentLang;
+            if (typeof s.matchStartTime === "number") matchStartTime = s.matchStartTime;
+            if (s.currentFormat === "americano" || s.currentFormat === "standard") {
+                currentFormat = s.currentFormat;
+            }
+            if (s.formatOptions) {
+                if (s.formatOptions.americano) {
+                    var a = s.formatOptions.americano;
+                    if (typeof a.goldenPoint === "boolean") formatOptions.americano.goldenPoint = a.goldenPoint;
+                    if (typeof a.tiebreak7 === "boolean") formatOptions.americano.tiebreak7 = a.tiebreak7;
+                    if (typeof a.superTiebreak === "boolean") formatOptions.americano.superTiebreak = a.superTiebreak;
+                    if (typeof a.bestOf5 === "boolean") formatOptions.americano.bestOf5 = a.bestOf5;
+                }
+                if (s.formatOptions.standard) {
+                    var sd = s.formatOptions.standard;
+                    if (typeof sd.autoServe === "boolean") formatOptions.standard.autoServe = sd.autoServe;
+                    if (typeof sd.goldenPoint === "boolean") formatOptions.standard.goldenPoint = sd.goldenPoint;
+                    if (typeof sd.goldenScore === "string") formatOptions.standard.goldenScore = sd.goldenScore;
+                }
+            }
+            if (Array.isArray(s.tennisPoints) && s.tennisPoints.length === 2) tennisPoints = s.tennisPoints;
+            if (Array.isArray(s.games) && s.games.length === 3) games = s.games;
+            if (typeof s.currentSet === "number") currentSet = s.currentSet;
+            if (typeof s.matchOver === "boolean") matchOver = s.matchOver;
+            if (typeof s.inTiebreak === "boolean") inTiebreak = s.inTiebreak;
+            if (Array.isArray(s.tiebreakPoints) && s.tiebreakPoints.length === 2) tiebreakPoints = s.tiebreakPoints;
+        } catch (e) { console.warn("load error", e); }
+    }
+
+    function bind() {
+        $("card0").addEventListener("click", function () { addPoint(0); });
+        $("card1").addEventListener("click", function () { addPoint(1); });
+
+        $("btnSwitch").addEventListener("click", switchServe);
+        $("btnUndo").addEventListener("click", undo);
+        $("btnReset").addEventListener("click", resetGame);
+        $("btnSettings").addEventListener("click", openSettings);
+
+        $("btnTimerToggle").addEventListener("click", toggleTimer);
+        $("btnTimerReset").addEventListener("click", resetTimer);
+
+        $("btnSaveMatchMenu").addEventListener("click", function () {
+            saveCurrentMatch();
+        });
+
+        $("menuRoster").addEventListener("click", function () { openSheet("sheetRoster"); });
+        $("menuMatches").addEventListener("click", function () { openSheet("sheetMatches"); });
+        $("menuLanguage").addEventListener("click", function () { openSheet("sheetLanguage"); });
+        $("menuFormat").addEventListener("click", function () { openSheet("sheetFormat"); });
+        $("menuInterface").addEventListener("click", function () { openSheet("sheetInterface"); });
+        $("menuTheme").addEventListener("click", function () { openSheet("sheetTheme"); });
+
+        $("btnCloseSettings").addEventListener("click", closeSettings);
+        $("btnClearMatches").addEventListener("click", clearAllMatches);
+
+        var closeButtons = document.querySelectorAll(".btn-close-sheet");
+        for (var i = 0; i < closeButtons.length; i++) {
+            (function (btn) {
+                btn.addEventListener("click", function () {
+                    var sheet = btn.closest(".sheet-overlay");
+                    if (sheet) closeSheet(sheet.id);
+                });
+            })(closeButtons[i]);
+        }
+
+        var sheets = document.querySelectorAll(".sheet-overlay");
+        for (var j = 0; j < sheets.length; j++) {
+            (function (sheet) {
+                sheet.addEventListener("click", function (e) {
+                    if (e.target === sheet) closeSheet(sheet.id);
+                });
+            })(sheets[j]);
+        }
+
+        $("toggleTimer").addEventListener("click", function () {
+            this.classList.toggle("on");
+        });
+        $("toggleSwitch").addEventListener("click", function () {
+            this.classList.toggle("on");
+        });
+
+        $("themeDark").addEventListener("click", function () { setTheme("dark"); });
+        $("themeLight").addEventListener("click", function () { setTheme("light"); });
+
+        /* Выбор языка */
+        var langOpts = document.querySelectorAll(".lang-option");
+        for (var k = 0; k < langOpts.length; k++) {
+            (function (opt) {
+                opt.addEventListener("click", function () {
+                    var lang = opt.getAttribute("data-lang");
+                    applyLanguage(lang);
+                });
+            })(langOpts[k]);
+        }
+
+        /* Формат: клик по карточке формата */
+        $("formatAmericano").addEventListener("click", function () { setFormat("americano"); });
+        $("formatStandard").addEventListener("click", function () { setFormat("standard"); });
+
+        /* Тумблеры Американо */
+        $("optGoldenPoint").addEventListener("click", function () {
+            this.classList.toggle("on");
+            formatOptions.americano.goldenPoint = this.classList.contains("on");
+            saveState();
+        });
+        $("optTiebreak7").addEventListener("click", function () {
+            this.classList.toggle("on");
+            formatOptions.americano.tiebreak7 = this.classList.contains("on");
+            saveState();
+        });
+        $("optSuperTiebreak").addEventListener("click", function () {
+            this.classList.toggle("on");
+            formatOptions.americano.superTiebreak = this.classList.contains("on");
+            saveState();
+        });
+        $("optBestOf5").addEventListener("click", function () {
+            this.classList.toggle("on");
+            formatOptions.americano.bestOf5 = this.classList.contains("on");
+            saveState();
+        });
+
+        /* Тумблеры Стандартного */
+        $("optAutoServe").addEventListener("click", function () {
+            this.classList.toggle("on");
+            formatOptions.standard.autoServe = this.classList.contains("on");
+            saveState();
+        });
+        $("optStdGolden").addEventListener("click", function () {
+            this.classList.toggle("on");
+            formatOptions.standard.goldenPoint = this.classList.contains("on");
+            $("stdGoldenScoreField").style.display =
+                formatOptions.standard.goldenPoint ? "block" : "none";
+            saveState();
+        });
+
+        $("stdGoldenScoreInput").addEventListener("input", function () {
+            formatOptions.standard.goldenScore = this.value.trim() || "10:10";
+            saveState();
+        });
+    }
+
+    try {
+        localStorage.removeItem("padel_score_state");
+        localStorage.removeItem("padel_score_v2");
+        localStorage.removeItem("padel_score_v3");
+        localStorage.removeItem("padel_score_v4");
+        localStorage.removeItem("padel_score_v5");
+        localStorage.removeItem("padel_score_v6");
+        localStorage.removeItem("padel_score_v9");
+        localStorage.removeItem("padel_score_v10");
+        localStorage.removeItem("padel_score_v11");
+        localStorage.removeItem("padel_score_v12");
+        localStorage.removeItem("padel_score_v13");
+        localStorage.removeItem("padel_score_v14");
+        localStorage.removeItem("padel_score_v15");
+        localStorage.removeItem("padel_score_v16");
+    } catch (e) {}
+
+    bind();
+    loadState();
+    applyTheme();
+    applyLanguage(currentLang);
+    applyFormatUI();
+    renderTimer();
+    update();
+    updateMatchesCount();
+
+})();
+</script>
+
+</body>
+</html>
