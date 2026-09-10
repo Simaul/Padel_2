@@ -334,8 +334,13 @@
         background: var(--btn-bg-active);
     }
 
+    /* Новая игра (после старта) — красная */
     .reset { background: var(--btn-red); color: #ffffff; }
     .reset:active { background: var(--btn-red-active); }
+
+    /* Старт (до старта) — зелёная */
+    .start-btn { background: var(--btn-green); color: #ffffff; }
+    .start-btn:active { background: var(--btn-green-active); }
 
     .message {
         text-align: center;
@@ -501,7 +506,6 @@
     .field input:focus,
     .field select:focus { border-color: var(--accent); }
 
-    /* Пресеты очков */
     .preset-row {
         display: flex;
         gap: 8px;
@@ -523,9 +527,7 @@
         font-variant-numeric: tabular-nums;
     }
 
-    .preset-btn:active {
-        transform: scale(0.97);
-    }
+    .preset-btn:active { transform: scale(0.97); }
 
     .preset-btn.active {
         background: var(--preset-bg-active);
@@ -1196,7 +1198,7 @@
         <button type="button" class="control-button hidden" id="btnSwitch" title="Switch serve">S</button>
         <button type="button" class="control-button" id="btnUndo" title="Undo">&#x21B6;&#xFE0E;</button>
         <button type="button" class="control-button" id="btnSettings" title="Settings">&#x2699;&#xFE0E;</button>
-        <button type="button" class="control-button reset" id="btnReset" title="New game">&#x21BB;&#xFE0E;</button>
+        <button type="button" class="control-button start-btn" id="btnReset" title="Start">&#x25B6;&#xFE0E;</button>
     </div>
 </div>
 
@@ -1265,9 +1267,11 @@
     </div>
 </div>
 
-<!-- ШТОРКА: СОСТАВ -->
+<!-- ШТОРКА: СОСТАВ (с заголовком) -->
 <div class="sheet-overlay" id="sheetRoster">
     <div class="sheet">
+        <h2 id="sheetRosterTitle">Roster</h2>
+
         <div class="team-group">
             <div class="team-group-title" id="rosterGroup1">Team 1</div>
             <div class="field">
@@ -1321,7 +1325,7 @@
         <div class="format-option" id="formatAmericano" data-format="americano">
             <span class="format-check" id="checkFormatAmericano"></span>
             <div class="format-icon">⚡</div>
-            <div class="format-title" id="formatAmericanoTitle">Americano</div>
+            <div class="format-title" id="formatAmericanoTitle">Quick</div>
             <div class="format-desc" id="formatAmericanoDesc">Point-by-point: 1, 2, 3, 4...</div>
         </div>
 
@@ -1352,9 +1356,8 @@
         </div>
 
         <div class="format-options-group" id="optionsAmericano" style="display:none;">
-            <h3 id="optionsAmericanoTitle">Americano options</h3>
+            <h3 id="optionsAmericanoTitle">Quick options</h3>
 
-            <!-- До скольки очков -->
             <div class="field">
                 <label id="stdTargetLabel">Play to</label>
                 <div class="preset-row" id="stdPresetRow">
@@ -1366,7 +1369,6 @@
                 <input id="stdTargetInput" type="number" min="1" max="999" placeholder="16">
             </div>
 
-            <!-- Разница 2 -->
             <div class="toggle-row">
                 <span id="optWinByTwoLabel">Win by 2 (after target)</span>
                 <div class="toggle" id="optWinByTwo"></div>
@@ -1497,7 +1499,7 @@
 (function () {
     "use strict";
 
-    var STORAGE_KEY = "padel_score_v22";
+    var STORAGE_KEY = "padel_score_v23";
     var MATCHES_KEY = "padel_matches_v1";
 
     var TRANSLATIONS = {
@@ -1510,15 +1512,16 @@
             close: "Close", done: "Done", ok: "OK",
             rosterGroup: "Team", teamNameLabel: "Team name", playerLabel: "Player",
             teamNameDefault: "Team", playerDefault: "Player", serveWord: "serve",
+            sheetRosterTitle: "Roster",
             sheetLanguageTitle: "Language", sheetFormatTitle: "Format",
             sheetInterfaceTitle: "Interface", sheetThemeTitle: "Theme",
             sheetMatchesTitle: "Saved matches",
             formatClassicTitle: "Classic",
             formatClassicDesc: "Tennis scoring: 15/30/40, games, sets",
-            formatAmericanoTitle: "Americano",
+            formatAmericanoTitle: "Quick",
             formatAmericanoDesc: "Point-by-point: 1, 2, 3, 4...",
             optionsClassicTitle: "Classic options",
-            optionsAmericanoTitle: "Americano options",
+            optionsAmericanoTitle: "Quick options",
             classicDeuceSystem: "At 40:40",
             optDeuceClassic: "Classic (advantage)",
             optDeuceGolden: "Golden Point",
@@ -1536,6 +1539,7 @@
             clearAll: "Clear all",
             matchSaved: "Match saved", nothingToUndo: "Nothing to undo",
             newGame: "New game", saved: "Saved",
+            startMsg: "Start!",
             allMatchesDeleted: "All matches deleted",
             noMatches: "No saved matches yet",
             nothingToSave: "Score 0:0 — nothing to save",
@@ -1545,7 +1549,7 @@
             setWord: "Set", gameWord: "Game",
             matchWon: "Match won!", setWon: "Set won!",
             tiebreak: "Tie-break!", starPoint: "Star Point!", goldenPoint: "Golden Point!",
-            formatTagClassic: "Classic", formatTagAmericano: "Americano",
+            formatTagClassic: "Classic", formatTagAmericano: "Quick",
             formatSwitchConfirm: "Switch format? Current game will be reset.",
             victoryTitle: "VICTORY!",
             victoryCongrats: "Congratulations!",
@@ -1563,15 +1567,16 @@
             close: "Cerrar", done: "Listo", ok: "OK",
             rosterGroup: "Equipo", teamNameLabel: "Nombre del equipo", playerLabel: "Jugador",
             teamNameDefault: "Equipo", playerDefault: "Jugador", serveWord: "saque",
+            sheetRosterTitle: "Alineación",
             sheetLanguageTitle: "Idioma", sheetFormatTitle: "Formato",
             sheetInterfaceTitle: "Interfaz", sheetThemeTitle: "Tema",
             sheetMatchesTitle: "Partidos guardados",
             formatClassicTitle: "Clásico",
             formatClassicDesc: "Puntuación de tenis: 15/30/40, juegos, sets",
-            formatAmericanoTitle: "Americano",
+            formatAmericanoTitle: "Rápido",
             formatAmericanoDesc: "Punto por punto: 1, 2, 3, 4...",
             optionsClassicTitle: "Opciones Clásico",
-            optionsAmericanoTitle: "Opciones Americano",
+            optionsAmericanoTitle: "Opciones Rápido",
             classicDeuceSystem: "A 40:40",
             optDeuceClassic: "Clásico (ventaja)",
             optDeuceGolden: "Punto Dorado",
@@ -1589,6 +1594,7 @@
             clearAll: "Borrar todo",
             matchSaved: "Partido guardado", nothingToUndo: "Nada que deshacer",
             newGame: "Nuevo partido", saved: "Guardado",
+            startMsg: "¡Comienza!",
             allMatchesDeleted: "Todos los partidos borrados",
             noMatches: "Aún no hay partidos guardados",
             nothingToSave: "Marcador 0:0 — no hay nada que guardar",
@@ -1598,7 +1604,7 @@
             setWord: "Set", gameWord: "Juego",
             matchWon: "¡Partido ganado!", setWon: "¡Set ganado!",
             tiebreak: "¡Tie-break!", starPoint: "¡Star Point!", goldenPoint: "¡Punto Dorado!",
-            formatTagClassic: "Clásico", formatTagAmericano: "Americano",
+            formatTagClassic: "Clásico", formatTagAmericano: "Rápido",
             formatSwitchConfirm: "¿Cambiar formato? El juego actual se reiniciará.",
             victoryTitle: "¡VICTORIA!",
             victoryCongrats: "¡Felicidades!",
@@ -1616,15 +1622,16 @@
             close: "Закрыть", done: "Готово", ok: "ОК",
             rosterGroup: "Команда", teamNameLabel: "Название команды", playerLabel: "Игрок",
             teamNameDefault: "Команда", playerDefault: "Игрок", serveWord: "подача",
+            sheetRosterTitle: "Состав",
             sheetLanguageTitle: "Язык", sheetFormatTitle: "Формат",
             sheetInterfaceTitle: "Интерфейс", sheetThemeTitle: "Тема",
             sheetMatchesTitle: "Сохранённые матчи",
             formatClassicTitle: "Классический",
             formatClassicDesc: "Теннисный счёт: 15/30/40, геймы, сеты",
-            formatAmericanoTitle: "Американо",
+            formatAmericanoTitle: "Быстрый",
             formatAmericanoDesc: "Счёт по очкам: 1, 2, 3, 4...",
             optionsClassicTitle: "Опции Классического",
-            optionsAmericanoTitle: "Опции Американо",
+            optionsAmericanoTitle: "Опции Быстрого",
             classicDeuceSystem: "При 40:40",
             optDeuceClassic: "Классическая (больше/меньше)",
             optDeuceGolden: "Золотое очко",
@@ -1643,6 +1650,7 @@
             clearAll: "Очистить все",
             matchSaved: "Матч сохранён", nothingToUndo: "Нечего отменять",
             newGame: "Новая игра", saved: "Сохранено",
+            startMsg: "Старт!",
             allMatchesDeleted: "Все матчи удалены",
             noMatches: "Пока нет сохранённых матчей",
             nothingToSave: "Счёт 0:0 — нечего сохранять",
@@ -1652,7 +1660,7 @@
             setWord: "Сет", gameWord: "Гейм",
             matchWon: "Матч выигран!", setWon: "Сет выигран!",
             tiebreak: "Тай-брейк!", starPoint: "Star Point!", goldenPoint: "Золотое очко!",
-            formatTagClassic: "Классический", formatTagAmericano: "Американо",
+            formatTagClassic: "Классический", formatTagAmericano: "Быстрый",
             formatSwitchConfirm: "Сменить формат? Текущая игра будет сброшена.",
             victoryTitle: "ПОБЕДА!",
             victoryCongrats: "Поздравляем!",
@@ -1670,15 +1678,16 @@
             close: "Закрити", done: "Готово", ok: "ОК",
             rosterGroup: "Команда", teamNameLabel: "Назва команди", playerLabel: "Гравець",
             teamNameDefault: "Команда", playerDefault: "Гравець", serveWord: "подача",
+            sheetRosterTitle: "Склад",
             sheetLanguageTitle: "Мова", sheetFormatTitle: "Формат",
             sheetInterfaceTitle: "Інтерфейс", sheetThemeTitle: "Тема",
             sheetMatchesTitle: "Збережені матчі",
             formatClassicTitle: "Класичний",
             formatClassicDesc: "Тенісний рахунок: 15/30/40, гейми, сети",
-            formatAmericanoTitle: "Американо",
+            formatAmericanoTitle: "Швидкий",
             formatAmericanoDesc: "Рахунок за очками: 1, 2, 3, 4...",
             optionsClassicTitle: "Опції Класичного",
-            optionsAmericanoTitle: "Опції Американо",
+            optionsAmericanoTitle: "Опції Швидкого",
             classicDeuceSystem: "При 40:40",
             optDeuceClassic: "Класична (більше/менше)",
             optDeuceGolden: "Золоте очко",
@@ -1697,6 +1706,7 @@
             clearAll: "Очистити всі",
             matchSaved: "Матч збережено", nothingToUndo: "Нічого скасовувати",
             newGame: "Нова гра", saved: "Збережено",
+            startMsg: "Старт!",
             allMatchesDeleted: "Всі матчі видалено",
             noMatches: "Поки немає збережених матчів",
             nothingToSave: "Рахунок 0:0 — немає що зберігати",
@@ -1706,7 +1716,7 @@
             setWord: "Сет", gameWord: "Гейм",
             matchWon: "Матч виграно!", setWon: "Сет виграно!",
             tiebreak: "Тай-брейк!", starPoint: "Star Point!", goldenPoint: "Золоте очко!",
-            formatTagClassic: "Класичний", formatTagAmericano: "Американо",
+            formatTagClassic: "Класичний", formatTagAmericano: "Швидкий",
             formatSwitchConfirm: "Змінити формат? Поточна гра буде скинута.",
             victoryTitle: "ПЕРЕМОГА!",
             victoryCongrats: "Вітаємо!",
@@ -1729,6 +1739,8 @@
     var currentLang = "en";
     var matchStartTime = null;
     var timerStartTime = null;
+    /* Игра началась? (для переключения кнопки Старт ↔ Новая игра) */
+    var gameStarted = false;
 
     var currentFormat = "americano";
 
@@ -1800,6 +1812,15 @@
             showMessage(t("matchWon"));
             return;
         }
+        /* Автозапуск: если ещё не стартовали — стартуем сейчас */
+        if (!gameStarted) {
+            gameStarted = true;
+            if (timerStartTime === null) {
+                timerStartTime = Date.now();
+            }
+            startTimer();
+            updateResetButton();
+        }
         if (matchStartTime === null) matchStartTime = Date.now();
         saveHistory();
 
@@ -1813,11 +1834,10 @@
         saveState();
     }
 
-    /* АМЕРИКАНО */
+    /* БЫСТРЫЙ (бывш. Американо) */
     function addPointAmericano(team) {
         points[team]++;
 
-        /* Проверяем победу */
         if (checkAmericanoWin(team)) {
             matchOver = true;
             showVictory(team);
@@ -1844,10 +1864,8 @@
 
         if (winByTwo) {
             return (p - o) >= 2;
-        } else {
-            /* Кто первый достиг target — победил */
-            return true;
         }
+        return true;
     }
 
     /* КЛАССИЧЕСКИЙ */
@@ -2006,29 +2024,60 @@
         saveState();
     }
 
-    function resetGame() {
-        if (!confirm(t("newGameConfirm"))) return;
-        points = [0, 0];
-        serverIndex = 0;
-        serveCount = 1;
-        history = [];
-        matchStartTime = null;
-        timerStartTime = null;
-        tennisPoints = [0, 0];
-        games = [[0, 0], [0, 0], [0, 0]];
-        currentSet = 0;
-        matchOver = false;
-        inTiebreak = false;
-        tiebreakPoints = [0, 0];
-        starPointStage = 0;
-        classicServePos = 0;
-        classicSetStartPos = 0;
-        pauseTimer();
-        timerSeconds = 0;
-        renderTimer();
-        update();
-        saveState();
-        showMessage(t("newGame"));
+    /* Кнопка внизу: работает как Старт или как Новая игра */
+    function resetOrStart() {
+        if (!gameStarted) {
+            /* Старт */
+            gameStarted = true;
+            if (timerStartTime === null) {
+                timerStartTime = Date.now();
+            }
+            startTimer();
+            updateResetButton();
+            showMessage(t("startMsg"));
+        } else {
+            /* Новая игра */
+            if (!confirm(t("newGameConfirm"))) return;
+            points = [0, 0];
+            serverIndex = 0;
+            serveCount = 1;
+            history = [];
+            matchStartTime = null;
+            timerStartTime = null;
+            tennisPoints = [0, 0];
+            games = [[0, 0], [0, 0], [0, 0]];
+            currentSet = 0;
+            matchOver = false;
+            inTiebreak = false;
+            tiebreakPoints = [0, 0];
+            starPointStage = 0;
+            classicServePos = 0;
+            classicSetStartPos = 0;
+            gameStarted = false;
+            pauseTimer();
+            timerSeconds = 0;
+            renderTimer();
+            updateResetButton();
+            update();
+            saveState();
+            showMessage(t("newGame"));
+        }
+    }
+
+    /* Обновить внешний вид кнопки (Старт/Новая игра) */
+    function updateResetButton() {
+        var btn = $("btnReset");
+        if (gameStarted) {
+            btn.classList.remove("start-btn");
+            btn.classList.add("reset");
+            btn.innerHTML = "&#x21BB;&#xFE0E;";   /* ↻ */
+            btn.setAttribute("title", t("newGame"));
+        } else {
+            btn.classList.remove("reset");
+            btn.classList.add("start-btn");
+            btn.innerHTML = "&#x25B6;&#xFE0E;";   /* ▶ */
+            btn.setAttribute("title", "Start");
+        }
     }
 
     function getMatchDuration() {
@@ -2037,7 +2086,6 @@
         return 0;
     }
 
-    /* ПЛАШКА ПОБЕДЫ */
     function showVictory(team) {
         var winnerName = teamNames[team];
 
@@ -2061,7 +2109,6 @@
                 setsHtml += '</div>';
             }
         } else {
-            /* Американо — финальный счёт */
             setsHtml += '<div class="victory-final-score">' + points[0] + ' : ' + points[1] + '</div>';
         }
 
@@ -2110,7 +2157,6 @@
         return m + ":" + pad2(s);
     }
 
-    /* МАТЧИ */
     function loadMatches() {
         try {
             var raw = localStorage.getItem(MATCHES_KEY);
@@ -2412,6 +2458,8 @@
         $("menuThemeLabel").textContent = t("menuTheme");
         $("btnCloseSettings").textContent = t("close");
 
+        $("sheetRosterTitle").textContent = t("sheetRosterTitle");
+
         $("rosterGroup1").textContent = t("rosterGroup") + " 1";
         $("rosterGroup2").textContent = t("rosterGroup") + " 2";
         $("labelTeamName0").textContent = t("teamNameLabel");
@@ -2466,6 +2514,9 @@
             $("setChipLabel" + s).textContent = t("setWord") + " " + (s + 1);
         }
 
+        /* Обновить title кнопки Старт/Новая */
+        updateResetButton();
+
         renderMatchesList();
     }
 
@@ -2503,7 +2554,6 @@
         }, 2000);
     }
 
-    /* ТАЙМЕР */
     function formatTime(sec) {
         var m = Math.floor(sec / 60);
         var s = sec % 60;
@@ -2614,9 +2664,11 @@
         history = [];
         matchStartTime = null;
         timerStartTime = null;
+        gameStarted = false;
         pauseTimer();
         timerSeconds = 0;
         renderTimer();
+        updateResetButton();
 
         applyFormatUI();
         update();
@@ -2720,6 +2772,7 @@
                 matchStartTime: matchStartTime,
                 timerStartTime: timerStartTime,
                 timerSeconds: timerSeconds,
+                gameStarted: gameStarted,
                 currentFormat: currentFormat,
                 formatOptions: formatOptions,
                 tennisPoints: tennisPoints,
@@ -2752,6 +2805,7 @@
             if (typeof s.matchStartTime === "number") matchStartTime = s.matchStartTime;
             if (typeof s.timerStartTime === "number") timerStartTime = s.timerStartTime;
             if (typeof s.timerSeconds === "number") timerSeconds = s.timerSeconds;
+            if (typeof s.gameStarted === "boolean") gameStarted = s.gameStarted;
             if (s.currentFormat === "classic" || s.currentFormat === "americano") currentFormat = s.currentFormat;
 
             if (s.formatOptions) {
@@ -2790,7 +2844,7 @@
 
         $("btnSwitch").addEventListener("click", switchServe);
         $("btnUndo").addEventListener("click", undo);
-        $("btnReset").addEventListener("click", resetGame);
+        $("btnReset").addEventListener("click", resetOrStart);
         $("btnSettings").addEventListener("click", openSettings);
 
         $("timerBar").addEventListener("click", toggleTimer);
@@ -2868,7 +2922,6 @@
             saveState();
         });
 
-        /* Пресеты очков */
         var presetBtns = document.querySelectorAll(".preset-btn");
         for (var p = 0; p < presetBtns.length; p++) {
             (function (btn) {
@@ -2938,6 +2991,7 @@
         localStorage.removeItem("padel_score_v19");
         localStorage.removeItem("padel_score_v20");
         localStorage.removeItem("padel_score_v21");
+        localStorage.removeItem("padel_score_v22");
     } catch (e) {}
 
     bind();
@@ -2946,6 +3000,7 @@
     applyLanguage(currentLang);
     applyFormatUI();
     renderTimer();
+    updateResetButton();
     update();
     updateMatchesCount();
 
