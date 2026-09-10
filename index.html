@@ -16,6 +16,7 @@
         --accent: #8ab4a0;
         --accent-light: #a8d5be;
         --accent-gold: #e6c34e;
+        --accent-red: #c25a5a;
         --text: #e8eaed;
         --text-muted: #b8c0c8;
         --text-dim: #8a929a;
@@ -48,6 +49,7 @@
         --accent: #4a7c59;
         --accent-light: #3d6849;
         --accent-gold: #b8930a;
+        --accent-red: #c25a5a;
         --text: #1a1d21;
         --text-muted: #5a6068;
         --text-dim: #8a929a;
@@ -271,54 +273,41 @@
         font-size: 15px;
     }
 
+    /* ============================================================
+       ТАЙМЕР — только цифры, тап = пауза/продолжить
+       ============================================================ */
     .timer-bar {
         display: none;
         align-items: center;
         justify-content: center;
-        gap: 12px;
         margin-top: 12px;
         padding: 10px 16px;
         background: var(--timer-bg);
         border: 2px solid var(--timer-border);
         border-radius: 14px;
+        cursor: pointer;
+        transition: transform 0.05s, border-color 0.2s;
+        -webkit-user-select: none;
+        user-select: none;
     }
 
     .timer-bar.visible { display: flex; }
 
+    .timer-bar:active { transform: scale(0.98); }
+
     .timer-display {
-        font-size: 28px;
+        font-size: 32px;
         font-weight: 800;
         font-variant-numeric: tabular-nums;
-        color: var(--text);
-        letter-spacing: 1px;
-        min-width: 90px;
+        color: var(--accent-light);
+        letter-spacing: 2px;
         text-align: center;
+        transition: color 0.2s;
     }
 
-    .timer-btn {
-        width: 40px;
-        height: 40px;
-        border: none;
-        border-radius: 10px;
-        background: var(--btn-bg);
-        color: var(--text);
-        font-size: 20px;
-        line-height: 1;
-        cursor: pointer;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Symbol", sans-serif;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .timer-btn:active {
-        transform: scale(0.95);
-        background: var(--btn-bg-active);
-    }
-
-    .timer-btn.paused {
-        background: var(--btn-green);
-        color: #fff;
+    /* Когда таймер на паузе — красный */
+    .timer-bar.paused .timer-display {
+        color: var(--accent-red);
     }
 
     .controls {
@@ -790,6 +779,14 @@
         line-height: 1.5;
     }
 
+    .match-time {
+        font-size: 11px;
+        color: var(--text-dim);
+        margin-top: 6px;
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+    }
+
     .match-delete {
         position: absolute;
         top: 8px;
@@ -1070,8 +1067,7 @@
             padding: 6px 12px;
         }
 
-        .timer-display { font-size: 22px; min-width: 70px; }
-        .timer-btn { width: 34px; height: 34px; font-size: 17px; }
+        .timer-display { font-size: 24px; letter-spacing: 1px; }
 
         .controls { margin-top: 8px; }
 
@@ -1098,8 +1094,7 @@
         .points.tennis-text { font-size: 50px; }
         .card-top { top: 12px; }
         .control-button { padding: 10px 6px; font-size: 18px; }
-        .timer-display { font-size: 18px; min-width: 60px; }
-        .timer-btn { width: 30px; height: 30px; font-size: 15px; }
+        .timer-display { font-size: 20px; }
     }
 </style>
 </head>
@@ -1150,10 +1145,9 @@
         </div>
     </div>
 
+    <!-- ТАЙМЕР: только цифры, тап = пауза/продолжить -->
     <div class="timer-bar" id="timerBar">
-        <button type="button" class="timer-btn" id="btnTimerToggle" title="Start/Pause">&#x25B6;&#xFE0E;</button>
         <div class="timer-display" id="timerDisplay">00:00</div>
-        <button type="button" class="timer-btn" id="btnTimerReset" title="Reset">&#x21BA;&#xFE0E;</button>
     </div>
 
     <div class="message" id="message"></div>
@@ -1444,12 +1438,9 @@
 (function () {
     "use strict";
 
-    var STORAGE_KEY = "padel_score_v20";
+    var STORAGE_KEY = "padel_score_v21";
     var MATCHES_KEY = "padel_matches_v1";
 
-    /* ============================================================
-       ПЕРЕВОДЫ
-       ============================================================ */
     var TRANSLATIONS = {
         en: {
             title: "🎾 Padel Score 2",
@@ -1659,9 +1650,6 @@
         }
     };
 
-    /* ============================================================
-       СОСТОЯНИЕ
-       ============================================================ */
     var players = ["Player 1", "Player 2", "Player 3", "Player 4"];
     var teamNames = ["Team 1", "Team 2"];
     var points = [0, 0];
@@ -1673,6 +1661,7 @@
     var currentTheme = "dark";
     var currentLang = "en";
     var matchStartTime = null;
+    var timerStartTime = null;   /* момент, когда таймер впервые стартовал */
 
     var currentFormat = "americano";
 
@@ -1755,9 +1744,6 @@
         saveState();
     }
 
-    /* ============================================================
-       АМЕРИКАНО
-       ============================================================ */
     function addPointAmericano(team) {
         points[team]++;
 
@@ -1771,13 +1757,9 @@
         }
     }
 
-    /* ============================================================
-       КЛАССИЧЕСКИЙ — по правилам FIP 2026
-       ============================================================ */
     function addPointClassic(team) {
         var opp = team === 0 ? 1 : 0;
 
-        /* --- ТАЙ-БРЕЙК --- */
         if (inTiebreak) {
             tiebreakPoints[team]++;
             var target = isSuperTiebreak() ? 10 : 7;
@@ -1795,12 +1777,10 @@
             return;
         }
 
-        /* --- ОБЫЧНЫЙ ГЕЙМ --- */
         var p = tennisPoints[team];
         var o = tennisPoints[opp];
         var deuceSystem = formatOptions.classic.deuceSystem;
 
-        /* 40:40 */
         if (p === 3 && o === 3) {
             if (deuceSystem === "classic" || deuceSystem === "star") {
                 if (deuceSystem === "star" && starPointStage >= 3) {
@@ -1809,19 +1789,16 @@
                     tennisPoints[team] = 4;
                 }
             } else {
-                /* Golden Point */
                 winGame(team);
             }
             return;
         }
 
-        /* Игрок с ADV выиграл очко — победа в гейме */
         if (p === 4) {
             winGame(team);
             return;
         }
 
-        /* Игрок с ADV проиграл очко сопернику — возврат к 40:40 */
         if (o === 4) {
             tennisPoints[opp] = 3;
             if (deuceSystem === "star") {
@@ -1833,13 +1810,11 @@
             return;
         }
 
-        /* ВАЖНО: игрок с 40 против соперника с 0/15/30 — выигрывает гейм */
         if (p === 3 && o < 3) {
             winGame(team);
             return;
         }
 
-        /* Обычное начисление 0→15→30→40 */
         if (p < 3) {
             tennisPoints[team]++;
         }
@@ -1956,6 +1931,7 @@
         serveCount = 1;
         history = [];
         matchStartTime = null;
+        timerStartTime = null;
         tennisPoints = [0, 0];
         games = [[0, 0], [0, 0], [0, 0]];
         currentSet = 0;
@@ -1965,9 +1941,29 @@
         starPointStage = 0;
         classicServePos = 0;
         classicSetStartPos = 0;
+        /* Сбрасываем таймер */
+        pauseTimer();
+        timerSeconds = 0;
+        renderTimer();
         update();
         saveState();
         showMessage(t("newGame"));
+    }
+
+    /* ============================================================
+       ПОЛУЧИТЬ ВРЕМЯ МАТЧА ДЛЯ СОХРАНЕНИЯ (в секундах)
+       ============================================================
+       Если таймер использовался (timerStartTime !== null) —
+       берём от старта таймера. Иначе — от первого очка.
+       ============================================================ */
+    function getMatchDuration() {
+        if (timerStartTime !== null) {
+            return Math.floor((Date.now() - timerStartTime) / 1000);
+        }
+        if (matchStartTime !== null) {
+            return Math.floor((Date.now() - matchStartTime) / 1000);
+        }
+        return 0;
     }
 
     /* ============================================================
@@ -2006,12 +2002,10 @@
         playersHtml += '</div>';
         $("victoryPlayers").innerHTML = playersHtml;
 
-        var timeStr = "";
-        if (matchStartTime !== null) {
-            var dur = Math.floor((Date.now() - matchStartTime) / 1000);
-            var mins = Math.floor(dur / 60);
-            timeStr = t("victoryTime") + ': ' + mins + ' ' + t("minutes");
-        }
+        var dur = getMatchDuration();
+        var mins = Math.floor(dur / 60);
+        var secs = dur % 60;
+        var timeStr = t("victoryTime") + ': ' + mins + ':' + pad2(secs);
         $("victoryTime").textContent = timeStr;
 
         $("victoryOverlay").classList.add("open");
@@ -2021,9 +2015,6 @@
         $("victoryOverlay").classList.remove("open");
     }
 
-    /* ============================================================
-       ДАТА / ВРЕМЯ
-       ============================================================ */
     function pad2(n) { return n < 10 ? "0" + n : "" + n; }
 
     function formatDateTime(ts) {
@@ -2038,9 +2029,13 @@
         return pad2(d.getHours()) + ":" + pad2(d.getMinutes());
     }
 
-    /* ============================================================
-       МАТЧИ
-       ============================================================ */
+    function formatDurationShort(sec) {
+        var m = Math.floor(sec / 60);
+        var s = sec % 60;
+        return m + ":" + pad2(s);
+    }
+
+    /* МАТЧИ */
     function loadMatches() {
         try {
             var raw = localStorage.getItem(MATCHES_KEY);
@@ -2072,11 +2067,13 @@
 
         var now = Date.now();
         var start = matchStartTime || now;
+        var duration = getMatchDuration();
 
         var match = {
             id: now,
             startTime: start,
             endTime: now,
+            duration: duration,
             teamNames: [teamNames[0], teamNames[1]],
             players: [players[0], players[1], players[2], players[3]],
             points: [points[0], points[1]],
@@ -2181,6 +2178,12 @@
             }
 
             html += '<div class="match-players">' + escapeHtml(players1) + ' — ' + escapeHtml(players2) + '</div>';
+
+            /* Время матча */
+            if (m.duration && m.duration > 0) {
+                html += '<div class="match-time">⏱ ' + formatDurationShort(m.duration) + '</div>';
+            }
+
             html += '</div>';
         }
 
@@ -2320,9 +2323,6 @@
         }
     }
 
-    /* ============================================================
-       ПЕРЕВОДЫ
-       ============================================================ */
     function applyTranslations() {
         $("appTitle").textContent = t("title");
         $("serveWord0").textContent = t("serveWord");
@@ -2427,7 +2427,7 @@
         }, 2000);
     }
 
-    /* Таймер */
+    /* ТАЙМЕР */
     function formatTime(sec) {
         var m = Math.floor(sec / 60);
         var s = sec % 60;
@@ -2441,8 +2441,11 @@
     function startTimer() {
         if (timerRunning) return;
         timerRunning = true;
-        $("btnTimerToggle").innerHTML = "&#x23F8;&#xFE0E;";
-        $("btnTimerToggle").classList.add("paused");
+        /* Фиксируем момент первого запуска таймера */
+        if (timerStartTime === null) {
+            timerStartTime = Date.now() - timerSeconds * 1000;
+        }
+        $("timerBar").classList.remove("paused");
         timerInterval = setInterval(function () {
             timerSeconds++;
             renderTimer();
@@ -2452,8 +2455,7 @@
     function pauseTimer() {
         if (!timerRunning) return;
         timerRunning = false;
-        $("btnTimerToggle").innerHTML = "&#x25B6;&#xFE0E;";
-        $("btnTimerToggle").classList.remove("paused");
+        $("timerBar").classList.add("paused");
         clearInterval(timerInterval);
         timerInterval = null;
     }
@@ -2461,12 +2463,6 @@
     function toggleTimer() {
         if (timerRunning) pauseTimer();
         else startTimer();
-    }
-
-    function resetTimer() {
-        pauseTimer();
-        timerSeconds = 0;
-        renderTimer();
     }
 
     function applyLanguage(lang) {
@@ -2530,6 +2526,10 @@
         serveCount = 1;
         history = [];
         matchStartTime = null;
+        timerStartTime = null;
+        pauseTimer();
+        timerSeconds = 0;
+        renderTimer();
 
         applyFormatUI();
         update();
@@ -2631,6 +2631,8 @@
                 currentTheme: currentTheme,
                 currentLang: currentLang,
                 matchStartTime: matchStartTime,
+                timerStartTime: timerStartTime,
+                timerSeconds: timerSeconds,
                 currentFormat: currentFormat,
                 formatOptions: formatOptions,
                 tennisPoints: tennisPoints,
@@ -2661,6 +2663,8 @@
             if (typeof s.currentTheme === "string") currentTheme = s.currentTheme;
             if (typeof s.currentLang === "string") currentLang = s.currentLang;
             if (typeof s.matchStartTime === "number") matchStartTime = s.matchStartTime;
+            if (typeof s.timerStartTime === "number") timerStartTime = s.timerStartTime;
+            if (typeof s.timerSeconds === "number") timerSeconds = s.timerSeconds;
             if (s.currentFormat === "classic" || s.currentFormat === "americano") currentFormat = s.currentFormat;
 
             if (s.formatOptions) {
@@ -2700,8 +2704,8 @@
         $("btnReset").addEventListener("click", resetGame);
         $("btnSettings").addEventListener("click", openSettings);
 
-        $("btnTimerToggle").addEventListener("click", toggleTimer);
-        $("btnTimerReset").addEventListener("click", resetTimer);
+        /* Таймер: тап по всей плашке = пауза/продолжить */
+        $("timerBar").addEventListener("click", toggleTimer);
 
         $("btnSaveMatchMenu").addEventListener("click", saveCurrentMatch);
 
@@ -2815,6 +2819,7 @@
         localStorage.removeItem("padel_score_v17");
         localStorage.removeItem("padel_score_v18");
         localStorage.removeItem("padel_score_v19");
+        localStorage.removeItem("padel_score_v20");
     } catch (e) {}
 
     bind();
