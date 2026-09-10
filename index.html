@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Padel Score</title>
+<title>Padel Score 2</title>
 
 <style>
     :root {
@@ -15,6 +15,7 @@
         --card-serving-active: #33403f;
         --accent: #8ab4a0;
         --accent-light: #a8d5be;
+        --accent-gold: #e6c34e;
         --text: #e8eaed;
         --text-muted: #b8c0c8;
         --text-dim: #8a929a;
@@ -46,6 +47,7 @@
         --card-serving-active: #d8e6dc;
         --accent: #4a7c59;
         --accent-light: #3d6849;
+        --accent-gold: #b8930a;
         --text: #1a1d21;
         --text-muted: #5a6068;
         --text-dim: #8a929a;
@@ -99,9 +101,7 @@
         font-weight: 700;
     }
 
-    /* ============================================================
-       ПОЛОСА СЕТОВ (только для Американо)
-       ============================================================ */
+    /* Полоса сетов */
     .sets-bar {
         display: none;
         justify-content: center;
@@ -189,6 +189,12 @@
         background: var(--card-serving-active);
     }
 
+    /* Подсветка для Star Point / Golden Point */
+    .score-card.star-point {
+        border-color: var(--accent-gold);
+        box-shadow: 0 0 0 2px var(--accent-gold) inset;
+    }
+
     .card-top {
         position: absolute;
         top: 22px;
@@ -241,7 +247,6 @@
         color: var(--accent-light);
     }
 
-    /* Теннисные очки (15/30/40/AD) — крупнее обычных */
     .points {
         font-size: 96px;
         font-weight: 800;
@@ -251,15 +256,16 @@
         margin-top: 30px;
     }
 
-    /* Когда очки теннисные (например "AD") — чуть мельче */
     .points.tennis-text {
         font-size: 76px;
-        letter-spacing: 0;
+    }
+
+    .points.star-gold {
+        color: var(--accent-gold);
     }
 
     .score-card.serving .points { color: var(--accent-light); }
 
-    /* Счёт геймов (только в Американо) */
     .games-score {
         display: none;
         font-size: 13px;
@@ -634,10 +640,17 @@
         margin-bottom: 10px;
         cursor: pointer;
         color: var(--text);
+        position: relative;
     }
 
     .format-option:active { background: var(--btn-bg); }
     .format-option.selected { border-color: var(--accent); background: var(--card-serving-bg); }
+
+    .format-option .format-icon {
+        font-size: 24px;
+        line-height: 1;
+        margin-bottom: 6px;
+    }
 
     .format-option .format-title {
         font-size: 16px;
@@ -654,14 +667,15 @@
     }
 
     .format-option .format-check {
-        float: right;
+        position: absolute;
+        top: 14px;
+        right: 14px;
         color: var(--accent);
         font-size: 20px;
         font-weight: 800;
         line-height: 1;
     }
 
-    /* Раздел галочек — с отступом сверху */
     .format-options-group {
         margin-top: 20px;
         padding-top: 16px;
@@ -885,10 +899,7 @@
             padding: 5px 8px;
         }
 
-        .set-chip {
-            padding: 4px 6px;
-        }
-
+        .set-chip { padding: 4px 6px; }
         .set-chip-label { font-size: 9px; }
         .set-chip-score { font-size: 14px; }
 
@@ -953,9 +964,8 @@
 <body>
 
 <div class="app">
-    <h1 id="appTitle">🎾 Padel Score</h1>
+    <h1 id="appTitle">🎾 Padel Score 2</h1>
 
-    <!-- Полоса сетов (только Американо) -->
     <div class="sets-bar" id="setsBar">
         <div class="set-chip" data-set="0">
             <div class="set-chip-label" id="setChipLabel0">Set 1</div>
@@ -1125,27 +1135,32 @@
     <div class="sheet">
         <h2 id="sheetFormatTitle">Format</h2>
 
-        <!-- Американо -->
+        <div class="format-option" id="formatClassic" data-format="classic">
+            <span class="format-check" id="checkFormatClassic"></span>
+            <div class="format-icon">🏆</div>
+            <div class="format-title" id="formatClassicTitle">Classic</div>
+            <div class="format-desc" id="formatClassicDesc">Tennis scoring: 15/30/40, games, sets</div>
+        </div>
+
         <div class="format-option" id="formatAmericano" data-format="americano">
             <span class="format-check" id="checkFormatAmericano"></span>
+            <div class="format-icon">⚡</div>
             <div class="format-title" id="formatAmericanoTitle">Americano</div>
-            <div class="format-desc" id="formatAmericanoDesc">Classic scoring: 15/30/40, games, sets</div>
+            <div class="format-desc" id="formatAmericanoDesc">Point-by-point: 1, 2, 3, 4...</div>
         </div>
 
-        <!-- Стандартный -->
-        <div class="format-option" id="formatStandard" data-format="standard">
-            <span class="format-check" id="checkFormatStandard"></span>
-            <div class="format-title" id="formatStandardTitle">Standard</div>
-            <div class="format-desc" id="formatStandardDesc">Point-by-point: 1, 2, 3, 4...</div>
-        </div>
+        <div class="format-options-group" id="optionsClassic" style="display:none;">
+            <h3 id="optionsClassicTitle">Classic options</h3>
 
-        <!-- Галочки для АМЕРИКАНО -->
-        <div class="format-options-group" id="optionsAmericano" style="display:none;">
-            <h3 id="optionsAmericanoTitle">Americano options</h3>
-            <div class="toggle-row">
-                <span id="optGoldenPointLabel">Golden point (at 40:40)</span>
-                <div class="toggle" id="optGoldenPoint"></div>
+            <div class="field">
+                <label id="classicDeuceSystemLabel">At 40:40</label>
+                <select id="classicDeuceSystem" style="width:100%;background:var(--input-bg);border:2px solid var(--input-border);border-radius:10px;padding:12px;color:var(--text);font-size:16px;font-weight:600;outline:none;">
+                    <option value="classic" id="optDeuceClassic">Classic (advantage)</option>
+                    <option value="golden" id="optDeuceGolden">Golden Point</option>
+                    <option value="star" id="optDeuceStar">Star Point (FIP 2026)</option>
+                </select>
             </div>
+
             <div class="toggle-row">
                 <span id="optTiebreak7Label">Tie-break to 7 (at 6:6)</span>
                 <div class="toggle" id="optTiebreak7"></div>
@@ -1160,9 +1175,8 @@
             </div>
         </div>
 
-        <!-- Галочки для СТАНДАРТНОГО -->
-        <div class="format-options-group" id="optionsStandard" style="display:none;">
-            <h3 id="optionsStandardTitle">Standard options</h3>
+        <div class="format-options-group" id="optionsAmericano" style="display:none;">
+            <h3 id="optionsAmericanoTitle">Americano options</h3>
             <div class="toggle-row">
                 <span id="optAutoServeLabel">Auto serve rotation</span>
                 <div class="toggle" id="optAutoServe"></div>
@@ -1280,7 +1294,7 @@
 (function () {
     "use strict";
 
-    var STORAGE_KEY = "padel_score_v17";
+    var STORAGE_KEY = "padel_score_v18";
     var MATCHES_KEY = "padel_matches_v1";
 
     /* ============================================================
@@ -1288,7 +1302,7 @@
        ============================================================ */
     var TRANSLATIONS = {
         en: {
-            title: "🎾 Padel Score",
+            title: "🎾 Padel Score 2",
             menuTitle: "Settings",
             saveMatch: "Save match",
             menuRoster: "Roster",
@@ -1310,13 +1324,16 @@
             sheetInterfaceTitle: "Interface",
             sheetThemeTitle: "Theme",
             sheetMatchesTitle: "Saved matches",
+            formatClassicTitle: "Classic",
+            formatClassicDesc: "Tennis scoring: 15/30/40, games, sets",
             formatAmericanoTitle: "Americano",
-            formatAmericanoDesc: "Classic scoring: 15/30/40, games, sets",
-            formatStandardTitle: "Standard",
-            formatStandardDesc: "Point-by-point: 1, 2, 3, 4...",
+            formatAmericanoDesc: "Point-by-point: 1, 2, 3, 4...",
+            optionsClassicTitle: "Classic options",
             optionsAmericanoTitle: "Americano options",
-            optionsStandardTitle: "Standard options",
-            optGoldenPoint: "Golden point (at 40:40)",
+            classicDeuceSystem: "At 40:40",
+            optDeuceClassic: "Classic (advantage)",
+            optDeuceGolden: "Golden Point",
+            optDeuceStar: "Star Point (FIP 2026)",
             optTiebreak7: "Tie-break to 7 (at 6:6)",
             optSuperTiebreak: "Super tie-break in final set (to 10)",
             optBestOf5: "Best of 5 sets",
@@ -1343,11 +1360,14 @@
             matchWon: "Match won!",
             setWon: "Set won!",
             tiebreak: "Tie-break!",
+            starPoint: "Star Point!",
+            goldenPoint: "Golden Point!",
+            formatTagClassic: "Classic",
             formatTagAmericano: "Americano",
-            formatTagStandard: "Standard"
+            formatSwitchConfirm: "Switch format? Current game will be reset."
         },
         es: {
-            title: "🎾 Padel Score",
+            title: "🎾 Padel Score 2",
             menuTitle: "Ajustes",
             saveMatch: "Guardar partido",
             menuRoster: "Alineación",
@@ -1369,13 +1389,16 @@
             sheetInterfaceTitle: "Interfaz",
             sheetThemeTitle: "Tema",
             sheetMatchesTitle: "Partidos guardados",
+            formatClassicTitle: "Clásico",
+            formatClassicDesc: "Puntuación de tenis: 15/30/40, juegos, sets",
             formatAmericanoTitle: "Americano",
-            formatAmericanoDesc: "Puntuación clásica: 15/30/40, juegos, sets",
-            formatStandardTitle: "Estándar",
-            formatStandardDesc: "Punto por punto: 1, 2, 3, 4...",
+            formatAmericanoDesc: "Punto por punto: 1, 2, 3, 4...",
+            optionsClassicTitle: "Opciones Clásico",
             optionsAmericanoTitle: "Opciones Americano",
-            optionsStandardTitle: "Opciones Estándar",
-            optGoldenPoint: "Punto dorado (a 40:40)",
+            classicDeuceSystem: "A 40:40",
+            optDeuceClassic: "Clásico (ventaja)",
+            optDeuceGolden: "Punto Dorado",
+            optDeuceStar: "Star Point (FIP 2026)",
             optTiebreak7: "Tie-break a 7 (a 6:6)",
             optSuperTiebreak: "Súper tie-break en set final (a 10)",
             optBestOf5: "Mejor de 5 sets",
@@ -1402,11 +1425,14 @@
             matchWon: "¡Partido ganado!",
             setWon: "¡Set ganado!",
             tiebreak: "¡Tie-break!",
+            starPoint: "¡Star Point!",
+            goldenPoint: "¡Punto Dorado!",
+            formatTagClassic: "Clásico",
             formatTagAmericano: "Americano",
-            formatTagStandard: "Estándar"
+            formatSwitchConfirm: "¿Cambiar formato? El juego actual se reiniciará."
         },
         ru: {
-            title: "🎾 Padel Score",
+            title: "🎾 Padel Score 2",
             menuTitle: "Настройки",
             saveMatch: "Сохранить матч",
             menuRoster: "Состав",
@@ -1428,13 +1454,16 @@
             sheetInterfaceTitle: "Интерфейс",
             sheetThemeTitle: "Тема",
             sheetMatchesTitle: "Сохранённые матчи",
+            formatClassicTitle: "Классический",
+            formatClassicDesc: "Теннисный счёт: 15/30/40, геймы, сеты",
             formatAmericanoTitle: "Американо",
-            formatAmericanoDesc: "Классический счёт: 15/30/40, геймы, сеты",
-            formatStandardTitle: "Стандартный",
-            formatStandardDesc: "Счёт по очкам: 1, 2, 3, 4...",
+            formatAmericanoDesc: "Счёт по очкам: 1, 2, 3, 4...",
+            optionsClassicTitle: "Опции Классического",
             optionsAmericanoTitle: "Опции Американо",
-            optionsStandardTitle: "Опции Стандартного",
-            optGoldenPoint: "Золотое очко (при 40:40)",
+            classicDeuceSystem: "При 40:40",
+            optDeuceClassic: "Классическая (больше/меньше)",
+            optDeuceGolden: "Золотое очко",
+            optDeuceStar: "Star Point (FIP 2026)",
             optTiebreak7: "Тай-брейк до 7 (при 6:6)",
             optSuperTiebreak: "Супер-тай-брейк в решающем сете (до 10)",
             optBestOf5: "Матч до 3 сетов (best of 5)",
@@ -1461,11 +1490,14 @@
             matchWon: "Матч выигран!",
             setWon: "Сет выигран!",
             tiebreak: "Тай-брейк!",
+            starPoint: "Star Point!",
+            goldenPoint: "Золотое очко!",
+            formatTagClassic: "Классический",
             formatTagAmericano: "Американо",
-            formatTagStandard: "Стандартный"
+            formatSwitchConfirm: "Сменить формат? Текущая игра будет сброшена."
         },
         uk: {
-            title: "🎾 Padel Score",
+            title: "🎾 Padel Score 2",
             menuTitle: "Налаштування",
             saveMatch: "Зберегти матч",
             menuRoster: "Склад",
@@ -1487,13 +1519,16 @@
             sheetInterfaceTitle: "Інтерфейс",
             sheetThemeTitle: "Тема",
             sheetMatchesTitle: "Збережені матчі",
+            formatClassicTitle: "Класичний",
+            formatClassicDesc: "Тенісний рахунок: 15/30/40, гейми, сети",
             formatAmericanoTitle: "Американо",
-            formatAmericanoDesc: "Класичний рахунок: 15/30/40, гейми, сети",
-            formatStandardTitle: "Стандартний",
-            formatStandardDesc: "Рахунок за очками: 1, 2, 3, 4...",
+            formatAmericanoDesc: "Рахунок за очками: 1, 2, 3, 4...",
+            optionsClassicTitle: "Опції Класичного",
             optionsAmericanoTitle: "Опції Американо",
-            optionsStandardTitle: "Опції Стандартного",
-            optGoldenPoint: "Золоте очко (при 40:40)",
+            classicDeuceSystem: "При 40:40",
+            optDeuceClassic: "Класична (більше/менше)",
+            optDeuceGolden: "Золоте очко",
+            optDeuceStar: "Star Point (FIP 2026)",
             optTiebreak7: "Тай-брейк до 7 (при 6:6)",
             optSuperTiebreak: "Супер-тай-брейк у вирішальному сеті (до 10)",
             optBestOf5: "Матч до 3 сетів (best of 5)",
@@ -1520,8 +1555,11 @@
             matchWon: "Матч виграно!",
             setWon: "Сет виграно!",
             tiebreak: "Тай-брейк!",
+            starPoint: "Star Point!",
+            goldenPoint: "Золоте очко!",
+            formatTagClassic: "Класичний",
             formatTagAmericano: "Американо",
-            formatTagStandard: "Стандартний"
+            formatSwitchConfirm: "Змінити формат? Поточна гра буде скинута."
         }
     };
 
@@ -1540,29 +1578,40 @@
     var currentLang = "en";
     var matchStartTime = null;
 
-    /* Формат */
-    var currentFormat = "standard";   // "standard" | "americano"
+    /* Формат: "classic" | "americano" */
+    var currentFormat = "americano";
+
     var formatOptions = {
-        americano: {
-            goldenPoint: false,
+        classic: {
+            deuceSystem: "star",       // "classic" | "golden" | "star"
             tiebreak7: true,
             superTiebreak: false,
             bestOf5: false
         },
-        standard: {
+        americano: {
             autoServe: true,
             goldenPoint: false,
             goldenScore: "10:10"
         }
     };
 
-    /* Состояние для АМЕРИКАНО */
-    var tennisPoints = [0, 0];        // очки в текущем гейме: 0-3 (0/15/30/40), 4 = AD
-    var games = [[0, 0], [0, 0], [0, 0]];  // геймы по сетам
+    /* Состояние для КЛАССИЧЕСКОГО */
+    var tennisPoints = [0, 0];
+    var games = [[0, 0], [0, 0], [0, 0]];
     var currentSet = 0;
     var matchOver = false;
-    var inTiebreak = false;           // идёт ли тай-брейк (6:6)
-    var tiebreakPoints = [0, 0];      // очки в тай-брейке
+    var inTiebreak = false;
+    var tiebreakPoints = [0, 0];
+
+    /* Star Point: счётчик отыгранных advantage в текущем гейме.
+       Когда оба игрока отыграли по одному advantage и счёт снова 40:40 —
+       следующее очко решающее. */
+    var starPointStage = 0;   // 0 = нет, 1 = первое AD отыграно, 2 = второе AD отыграно, 3 = Star Point активен
+
+    /* Подача в Классическом: кто из 4 игроков подаёт текущий гейм.
+       Храним порядок: кому подавать следующий гейм. */
+    var classicServeOrder = [0, 2, 1, 3];
+    var classicServePos = 0;
 
     var timerSeconds = 0;
     var timerInterval = null;
@@ -1598,12 +1647,14 @@
             currentSet: currentSet,
             matchOver: matchOver,
             inTiebreak: inTiebreak,
-            tiebreakPoints: [tiebreakPoints[0], tiebreakPoints[1]]
+            tiebreakPoints: [tiebreakPoints[0], tiebreakPoints[1]],
+            starPointStage: starPointStage,
+            classicServePos: classicServePos
         });
     }
 
     /* ============================================================
-       ДОБАВИТЬ ОЧКО — в зависимости от формата
+       ДОБАВИТЬ ОЧКО
        ============================================================ */
     function addPoint(team) {
         if (matchOver) {
@@ -1613,10 +1664,10 @@
         if (matchStartTime === null) matchStartTime = Date.now();
         saveHistory();
 
-        if (currentFormat === "americano") {
-            addPointAmericano(team);
+        if (currentFormat === "classic") {
+            addPointClassic(team);
         } else {
-            addPointStandard(team);
+            addPointAmericano(team);
         }
 
         update();
@@ -1624,29 +1675,24 @@
     }
 
     /* ============================================================
-       ЛОГИКА СТАНДАРТНОГО (то, что было)
+       ЛОГИКА АМЕРИКАНО
        ============================================================ */
-    function addPointStandard(team) {
+    function addPointAmericano(team) {
         points[team]++;
 
-        /* Проверяем золотое очко */
-        if (formatOptions.standard.goldenPoint) {
-            var targetScore = formatOptions.standard.goldenScore;
-            /* Парсим "10:10" → [10, 10] */
-            var parts = targetScore.split(":");
+        /* Золотое очко в Американо */
+        if (formatOptions.americano.goldenPoint) {
+            var parts = formatOptions.americano.goldenScore.split(":");
             if (parts.length === 2) {
                 var tgt = [parseInt(parts[0], 10) || 0, parseInt(parts[1], 10) || 0];
-                /* Если сейчас счёт совпадает с целевым и обе равны — это золотое очко */
                 if (points[0] === tgt[0] && points[1] === tgt[1]) {
-                    /* Золотое очко: +1 и сразу победа в "гейме" (в стандартном — просто сброс) */
-                    /* Но в стандартном нет "геймов". Значит просто добавляем очко и продолжаем. */
-                    /* Считаем, что золотое очко в стандартном = просто +1 очко команде, ничего особого. */
+                    /* Ничего особого — просто помечаем, что сейчас разыгрывается решающее */
                 }
             }
         }
 
         /* Автопереход подачи */
-        if (formatOptions.standard.autoServe) {
+        if (formatOptions.americano.autoServe) {
             if (serveCount === 1) {
                 serveCount = 2;
             } else {
@@ -1657,24 +1703,26 @@
     }
 
     /* ============================================================
-       ЛОГИКА АМЕРИКАНО
+       ЛОГИКА КЛАССИЧЕСКОГО
        ============================================================ */
-    function addPointAmericano(team) {
+    function addPointClassic(team) {
         var opp = team === 0 ? 1 : 0;
 
         /* --- ТАЙ-БРЕЙК --- */
         if (inTiebreak) {
             tiebreakPoints[team]++;
-
-            /* Победа в тай-брейке: >= 7 и разница 2 (или >= 10 в супер-тай-брейке) */
             var target = isSuperTiebreak() ? 10 : 7;
             if (tiebreakPoints[team] >= target && tiebreakPoints[team] - tiebreakPoints[opp] >= 2) {
-                winSetFromTiebreak(team);
+                /* Победа в тай-брейке — забираем гейм и сет */
+                games[currentSet][team]++;
+                inTiebreak = false;
+                tiebreakPoints = [0, 0];
+                winSet(team);
             } else {
                 /* Смена подачи в тай-брейке: после 1-го очка и далее каждые 2 очка */
-                /* Упрощённо: каждые 2 очка меняем подающего */
                 if ((tiebreakPoints[0] + tiebreakPoints[1]) % 2 === 1) {
-                    serverIndex = nextServer(serverIndex);
+                    classicServePos = (classicServePos + 1) % 4;
+                    serverIndex = classicServeOrder[classicServePos];
                 }
             }
             return;
@@ -1684,35 +1732,69 @@
         var p = tennisPoints[team];
         var o = tennisPoints[opp];
 
-        /* Золотое очко при 40:40 */
-        if (formatOptions.americano.goldenPoint && p === 3 && o === 3) {
+        /* Система при 40:40 */
+        var deuce = (p === 3 && o === 3);
+        var advMe = (p === 4);
+        var advOpp = (o === 4);
+
+        /* Star Point: если активен stage 3, следующее очко решающее */
+        var starActive = (formatOptions.classic.deuceSystem === "star" && starPointStage >= 3);
+
+        if (deuce && starActive) {
+            /* Решающее очко — победа в гейме */
             winGame(team);
             return;
         }
 
-        /* Обычный теннисный счёт */
-        if (p < 3) {
-            tennisPoints[team]++;
-        } else if (p === 3 && o < 3) {
+        if (deuce && formatOptions.classic.deuceSystem === "golden") {
+            /* Золотое очко — победа в гейме */
             winGame(team);
-        } else if (p === 3 && o === 3) {
-            tennisPoints[team] = 4;   /* AD */
-        } else if (p === 4) {
-            winGame(team);
-        } else if (p === 3 && o === 4) {
-            tennisPoints[opp] = 3;    /* обратно в 40:40 */
-        } else if (p < 3) {
-            tennisPoints[team]++;
+            return;
         }
 
-        /* Подача: в теннисе подают целый гейм, но мы делаем как в стандартном —
-           после каждого очка (упрощение для падела) */
+        if (deuce && formatOptions.classic.deuceSystem === "classic") {
+            /* Классика: обычный AD */
+            tennisPoints[team] = 4;  // AD
+            return;
+        }
+
+        if (deuce && formatOptions.classic.deuceSystem === "star") {
+            /* Star Point: разыгрывается AD. Игрок получает AD.
+               Счётчик stage увеличивается, когда AD отыгран соперником. */
+            tennisPoints[team] = 4;  // AD
+            return;
+        }
+
+        if (advMe) {
+            /* Игрок с AD выиграл очко — победа в гейме */
+            winGame(team);
+            return;
+        }
+
+        if (advOpp) {
+            /* Игрок с AD проиграл очко сопернику — возвращаемся к 40:40 */
+            tennisPoints[opp] = 3;
+            if (formatOptions.classic.deuceSystem === "star") {
+                starPointStage++;
+                if (starPointStage >= 3) {
+                    showMessage(t("starPoint"));
+                }
+            }
+            return;
+        }
+
+        if (p < 3) {
+            tennisPoints[team]++;
+            return;
+        }
+
+        /* Если ничего не подошло (не должно случиться) — просто +1 */
+        tennisPoints[team]++;
     }
 
     function isSuperTiebreak() {
-        /* Супер-тай-брейк играется в решающем сете при best of 3 (3-й сет) или best of 5 (5-й) */
-        if (!formatOptions.americano.superTiebreak) return false;
-        if (formatOptions.americano.bestOf5) {
+        if (!formatOptions.classic.superTiebreak) return false;
+        if (formatOptions.classic.bestOf5) {
             return currentSet === 4;
         }
         return currentSet === 2;
@@ -1721,52 +1803,42 @@
     function winGame(team) {
         games[currentSet][team]++;
         tennisPoints = [0, 0];
+        starPointStage = 0;
 
-        /* Победа в сете: >= 6 и разница 2 (кроме тай-брейка) */
         var myGames = games[currentSet][team];
         var oppGames = games[currentSet][1 - team];
 
+        /* Победа в сете */
         if (myGames >= 6 && myGames - oppGames >= 2) {
             winSet(team);
             return;
         }
 
-        /* 6:6 → тай-брейк (или супер-тай-брейк) */
+        /* 6:6 → тай-брейк */
         if (myGames === 6 && oppGames === 6) {
             if (isSuperTiebreak()) {
                 inTiebreak = true;
                 tiebreakPoints = [0, 0];
                 showMessage(t("tiebreak"));
-            } else if (formatOptions.americano.tiebreak7) {
+            } else if (formatOptions.classic.tiebreak7) {
                 inTiebreak = true;
                 tiebreakPoints = [0, 0];
                 showMessage(t("tiebreak"));
-            } else {
-                /* Без тай-брейка — играем до разницы 2 */
-                /* Ничего не делаем, продолжаем */
             }
         }
 
-        /* Подача переходит (следующий игрок) */
-        serverIndex = nextServer(serverIndex);
-    }
-
-    function winSetFromTiebreak(team) {
-        /* В тай-брейке гейм считается как 7:6 в пользу победителя */
-        games[currentSet][team]++;
-        inTiebreak = false;
-        tiebreakPoints = [0, 0];
-        winSet(team);
+        /* Подача переходит: следующий игрок в порядке */
+        classicServePos = (classicServePos + 1) % 4;
+        serverIndex = classicServeOrder[classicServePos];
     }
 
     function winSet(team) {
-        /* Проверяем, выигран ли матч */
         var setsWon = 0;
         for (var i = 0; i < games.length; i++) {
             if (games[i][team] > games[i][1 - team]) setsWon++;
         }
 
-        var needed = formatOptions.americano.bestOf5 ? 3 : 2;
+        var needed = formatOptions.classic.bestOf5 ? 3 : 2;
 
         if (setsWon >= needed) {
             matchOver = true;
@@ -1774,23 +1846,23 @@
             return;
         }
 
-        /* Переход к следующему сету */
         if (currentSet < 2) {
             currentSet++;
             tennisPoints = [0, 0];
             tiebreakPoints = [0, 0];
             inTiebreak = false;
-            showMessage(t("setWon") + " " + t("setWord") + " " + currentSet);
+            starPointStage = 0;
+            /* Смена порядка подачи в новом сете */
+            classicServePos = 0;
+            /* Первый, кто подаёт в новом сете, определяется порядком.
+               Для простоты: продолжаем с текущей позиции. */
+            showMessage(t("setWon"));
         } else {
-            /* Все 3 сета закончились, но матч не выигран (2:1 или 1:2)? Не должно быть, но на всякий */
             matchOver = true;
             showMessage(t("matchWon"));
         }
-
-        serverIndex = nextServer(serverIndex);
     }
 
-    /* Текстовое представление теннисного очка */
     function tennisPointText(value, opponent) {
         if (value >= 4 && value - opponent >= 1) return "AD";
         if (value > 3) return "40";
@@ -1800,7 +1872,12 @@
     function switchServe() {
         saveHistory();
         serveCount = 1;
-        serverIndex = nextServer(serverIndex);
+        if (currentFormat === "classic") {
+            classicServePos = (classicServePos + 1) % 4;
+            serverIndex = classicServeOrder[classicServePos];
+        } else {
+            serverIndex = nextServer(serverIndex);
+        }
         update();
         saveState();
     }
@@ -1820,6 +1897,8 @@
         matchOver = prev.matchOver;
         inTiebreak = prev.inTiebreak;
         tiebreakPoints = prev.tiebreakPoints;
+        starPointStage = prev.starPointStage;
+        classicServePos = prev.classicServePos;
         update();
         saveState();
     }
@@ -1837,6 +1916,8 @@
         matchOver = false;
         inTiebreak = false;
         tiebreakPoints = [0, 0];
+        starPointStage = 0;
+        classicServePos = 0;
         update();
         saveState();
         showMessage(t("newGame"));
@@ -1875,7 +1956,7 @@
 
     function saveCurrentMatch() {
         var hasScore = false;
-        if (currentFormat === "americano") {
+        if (currentFormat === "classic") {
             hasScore = games.some(function (s) { return s[0] > 0 || s[1] > 0; }) ||
                        tennisPoints[0] > 0 || tennisPoints[1] > 0;
         } else {
@@ -1900,21 +1981,21 @@
             format: currentFormat
         };
 
-        if (currentFormat === "americano") {
+        if (currentFormat === "classic") {
             match.games = games.map(function (s) { return [s[0], s[1]]; });
             match.tennisPoints = [tennisPoints[0], tennisPoints[1]];
             match.currentSet = currentSet;
             match.formatOptions = {
-                goldenPoint: formatOptions.americano.goldenPoint,
-                tiebreak7: formatOptions.americano.tiebreak7,
-                superTiebreak: formatOptions.americano.superTiebreak,
-                bestOf5: formatOptions.americano.bestOf5
+                deuceSystem: formatOptions.classic.deuceSystem,
+                tiebreak7: formatOptions.classic.tiebreak7,
+                superTiebreak: formatOptions.classic.superTiebreak,
+                bestOf5: formatOptions.classic.bestOf5
             };
         } else {
             match.formatOptions = {
-                autoServe: formatOptions.standard.autoServe,
-                goldenPoint: formatOptions.standard.goldenPoint,
-                goldenScore: formatOptions.standard.goldenScore
+                autoServe: formatOptions.americano.autoServe,
+                goldenPoint: formatOptions.americano.goldenPoint,
+                goldenScore: formatOptions.americano.goldenScore
             };
         }
 
@@ -1963,18 +2044,21 @@
             var players1 = m.players[0] + ", " + m.players[1];
             var players2 = m.players[2] + ", " + m.players[3];
 
-            var formatTag = m.format === "americano"
-                ? t("formatTagAmericano")
-                : t("formatTagStandard");
+            var formatTag;
+            if (m.format === "classic") {
+                formatTag = t("formatTagClassic");
+            } else if (m.format === "americano") {
+                formatTag = t("formatTagAmericano");
+            } else {
+                formatTag = t("formatTagAmericano");  /* старые матчи */
+            }
 
             html += '<div class="match-card">';
             html += '<button type="button" class="match-delete" data-id="' + m.id + '" title="Delete">&#x2715;&#xFE0E;</button>';
             html += '<div class="match-date">' + dateStr + '</div>';
             html += '<div class="match-format-tag">' + formatTag + '</div>';
 
-            /* Счёт: для Американо — по сетам, для Стандартного — просто очки */
-            if (m.format === "americano" && m.games) {
-                /* Считаем выигранные сеты */
+            if (m.format === "classic" && m.games) {
                 var setsA = 0, setsB = 0;
                 var setsStr = [];
                 for (var j = 0; j < m.games.length; j++) {
@@ -2048,8 +2132,8 @@
         $("server0").textContent = st === 0 ? name : "—";
         $("server1").textContent = st === 1 ? name : "—";
 
-        /* Римская цифра только в Стандартном */
-        if (currentFormat === "standard") {
+        /* Римская цифра только в Американо */
+        if (currentFormat === "americano") {
             $("numeral0").textContent = st === 0 ? numeral : "";
             $("numeral1").textContent = st === 1 ? numeral : "";
         } else {
@@ -2066,12 +2150,28 @@
             $("card0").classList.remove("serving");
         }
 
+        /* Star Point / Golden Point индикатор */
+        $("card0").classList.remove("star-point");
+        $("card1").classList.remove("star-point");
+        $("score0").classList.remove("star-gold");
+        $("score1").classList.remove("star-gold");
+
+        if (currentFormat === "classic" && !inTiebreak) {
+            var deuce = (tennisPoints[0] === 3 && tennisPoints[1] === 3);
+            var isGolden = (formatOptions.classic.deuceSystem === "golden" && deuce);
+            var isStar = (formatOptions.classic.deuceSystem === "star" && starPointStage >= 3 && deuce);
+            if (isGolden || isStar) {
+                $("card0").classList.add("star-point");
+                $("card1").classList.add("star-point");
+                $("score0").classList.add("star-gold");
+                $("score1").classList.add("star-gold");
+            }
+        }
+
         /* Отображение очков */
-        if (currentFormat === "americano") {
-            /* Полоса сетов */
+        if (currentFormat === "classic") {
             $("setsBar").classList.add("visible");
 
-            /* Тай-брейк или обычные очки */
             if (inTiebreak) {
                 $("score0").textContent = tiebreakPoints[0];
                 $("score1").textContent = tiebreakPoints[1];
@@ -2082,26 +2182,18 @@
                 var t1 = tennisPointText(tennisPoints[1], tennisPoints[0]);
                 $("score0").textContent = t0;
                 $("score1").textContent = t1;
-                /* Если "0", "15", "30", "40" — обычный размер; если "AD" — тоже ок */
                 $("score0").classList.add("tennis-text");
                 $("score1").classList.add("tennis-text");
             }
 
-            /* Счёт геймов текущего сета */
             $("games0").classList.add("visible");
             $("games1").classList.add("visible");
             $("games0").innerHTML = t("gameWord") + ': <span class="games-num">' + games[currentSet][0] + ' : ' + games[currentSet][1] + '</span>';
             $("games1").innerHTML = "";
 
-            /* Полоса сетов */
-            var totalSets = formatOptions.americano.bestOf5 ? 5 : 3;
+            var totalSets = formatOptions.classic.bestOf5 ? 5 : 3;
             updateSetsBar(totalSets);
-
-            /* Очки в стандартном всё равно обновляем, чтобы не было пустоты */
-            $("numeral0").textContent = "";
-            $("numeral1").textContent = "";
         } else {
-            /* Стандартный */
             $("setsBar").classList.remove("visible");
             $("games0").classList.remove("visible");
             $("games1").classList.remove("visible");
@@ -2111,14 +2203,12 @@
             $("score1").textContent = points[1];
         }
 
-        /* Кнопка смены подачи */
         if (showSwitchButton) {
             $("btnSwitch").classList.remove("hidden");
         } else {
             $("btnSwitch").classList.add("hidden");
         }
 
-        /* Таймер */
         if (showTimer) {
             $("timerBar").classList.add("visible");
         } else {
@@ -2127,7 +2217,6 @@
     }
 
     function updateSetsBar(totalSets) {
-        /* Показываем нужное число чипов (3 или 5), остальные прячем */
         var chips = document.querySelectorAll(".set-chip");
         for (var i = 0; i < chips.length; i++) {
             if (i < totalSets) {
@@ -2136,14 +2225,12 @@
                 chips[i].style.display = "none";
             }
 
-            /* Текущий сет — подсветка */
             if (i === currentSet) {
                 chips[i].classList.add("current");
             } else {
                 chips[i].classList.remove("current");
             }
 
-            /* Оценки */
             var a = games[i][0];
             var b = games[i][1];
             if (i > currentSet && a === 0 && b === 0) {
@@ -2155,9 +2242,10 @@
     }
 
     /* ============================================================
-       ПРИМЕНЕНИЕ ПЕРЕВОДОВ
+       ПЕРЕВОДЫ
        ============================================================ */
     function applyTranslations() {
+        $("appTitle").textContent = t("title");
         $("serveWord0").textContent = t("serveWord");
         $("serveWord1").textContent = t("serveWord");
 
@@ -2186,15 +2274,19 @@
         $("sheetThemeTitle").textContent = t("sheetThemeTitle");
         $("sheetMatchesTitle").textContent = t("sheetMatchesTitle");
 
+        $("formatClassicTitle").textContent = t("formatClassicTitle");
+        $("formatClassicDesc").textContent = t("formatClassicDesc");
         $("formatAmericanoTitle").textContent = t("formatAmericanoTitle");
         $("formatAmericanoDesc").textContent = t("formatAmericanoDesc");
-        $("formatStandardTitle").textContent = t("formatStandardTitle");
-        $("formatStandardDesc").textContent = t("formatStandardDesc");
 
+        $("optionsClassicTitle").textContent = t("optionsClassicTitle");
         $("optionsAmericanoTitle").textContent = t("optionsAmericanoTitle");
-        $("optionsStandardTitle").textContent = t("optionsStandardTitle");
 
-        $("optGoldenPointLabel").textContent = t("optGoldenPoint");
+        $("classicDeuceSystemLabel").textContent = t("classicDeuceSystem");
+        $("optDeuceClassic").textContent = t("optDeuceClassic");
+        $("optDeuceGolden").textContent = t("optDeuceGolden");
+        $("optDeuceStar").textContent = t("optDeuceStar");
+
         $("optTiebreak7Label").textContent = t("optTiebreak7");
         $("optSuperTiebreakLabel").textContent = t("optSuperTiebreak");
         $("optBestOf5Label").textContent = t("optBestOf5");
@@ -2215,7 +2307,6 @@
             doneButtons[i].textContent = t("done");
         }
 
-        /* Метки сетов в полосе */
         for (var s = 0; s < 3; s++) {
             $("setChipLabel" + s).textContent = t("setWord") + " " + (s + 1);
         }
@@ -2223,7 +2314,6 @@
         renderMatchesList();
     }
 
-    /* Перевод шаблонных значений */
     function isDefaultTeamName(value, teamNum) {
         var patterns = ["Команда " + teamNum, "Team " + teamNum, "Equipo " + teamNum];
         return patterns.indexOf(value) !== -1;
@@ -2324,43 +2414,38 @@
 
     /* Формат */
     function applyFormatUI() {
-        /* Подсветка выбранного формата */
+        $("formatClassic").classList.toggle("selected", currentFormat === "classic");
         $("formatAmericano").classList.toggle("selected", currentFormat === "americano");
-        $("formatStandard").classList.toggle("selected", currentFormat === "standard");
+        $("checkFormatClassic").textContent = currentFormat === "classic" ? "✓" : "";
         $("checkFormatAmericano").textContent = currentFormat === "americano" ? "✓" : "";
-        $("checkFormatStandard").textContent = currentFormat === "standard" ? "✓" : "";
 
-        /* Показ опций в зависимости от формата */
-        if (currentFormat === "americano") {
-            $("optionsAmericano").style.display = "block";
-            $("optionsStandard").style.display = "none";
-        } else {
+        if (currentFormat === "classic") {
+            $("optionsClassic").style.display = "block";
             $("optionsAmericano").style.display = "none";
-            $("optionsStandard").style.display = "block";
+        } else {
+            $("optionsClassic").style.display = "none";
+            $("optionsAmericano").style.display = "block";
         }
 
-        /* Тумблеры для Американо */
-        $("optGoldenPoint").classList.toggle("on", formatOptions.americano.goldenPoint);
-        $("optTiebreak7").classList.toggle("on", formatOptions.americano.tiebreak7);
-        $("optSuperTiebreak").classList.toggle("on", formatOptions.americano.superTiebreak);
-        $("optBestOf5").classList.toggle("on", formatOptions.americano.bestOf5);
+        /* Классика */
+        $("classicDeuceSystem").value = formatOptions.classic.deuceSystem;
+        $("optTiebreak7").classList.toggle("on", formatOptions.classic.tiebreak7);
+        $("optSuperTiebreak").classList.toggle("on", formatOptions.classic.superTiebreak);
+        $("optBestOf5").classList.toggle("on", formatOptions.classic.bestOf5);
 
-        /* Тумблеры для Стандартного */
-        $("optAutoServe").classList.toggle("on", formatOptions.standard.autoServe);
-        $("optStdGolden").classList.toggle("on", formatOptions.standard.goldenPoint);
-        $("stdGoldenScoreInput").value = formatOptions.standard.goldenScore;
-
-        /* Показ поля для счёта золотого очка */
+        /* Американо */
+        $("optAutoServe").classList.toggle("on", formatOptions.americano.autoServe);
+        $("optStdGolden").classList.toggle("on", formatOptions.americano.goldenPoint);
+        $("stdGoldenScoreInput").value = formatOptions.americano.goldenScore;
         $("stdGoldenScoreField").style.display =
-            formatOptions.standard.goldenPoint ? "block" : "none";
+            formatOptions.americano.goldenPoint ? "block" : "none";
     }
 
     function setFormat(fmt) {
         if (currentFormat === fmt) return;
-        if (!confirm(t("newGameConfirm"))) return;
+        if (!confirm(t("formatSwitchConfirm"))) return;
 
         currentFormat = fmt;
-        /* Сброс игрового состояния */
         points = [0, 0];
         tennisPoints = [0, 0];
         games = [[0, 0], [0, 0], [0, 0]];
@@ -2368,6 +2453,8 @@
         matchOver = false;
         inTiebreak = false;
         tiebreakPoints = [0, 0];
+        starPointStage = 0;
+        classicServePos = 0;
         serverIndex = 0;
         serveCount = 1;
         history = [];
@@ -2434,8 +2521,7 @@
             saveAllSettings();
         }
         if (id === "sheetFormat") {
-            /* Сохраняем введённый счёт золотого очка */
-            formatOptions.standard.goldenScore = $("stdGoldenScoreInput").value.trim() || "10:10";
+            formatOptions.americano.goldenScore = $("stdGoldenScoreInput").value.trim() || "10:10";
             saveState();
         }
     }
@@ -2484,7 +2570,9 @@
                 currentSet: currentSet,
                 matchOver: matchOver,
                 inTiebreak: inTiebreak,
-                tiebreakPoints: tiebreakPoints
+                tiebreakPoints: tiebreakPoints,
+                starPointStage: starPointStage,
+                classicServePos: classicServePos
             }));
         } catch (e) { console.warn("save error", e); }
     }
@@ -2504,22 +2592,22 @@
             if (typeof s.currentTheme === "string") currentTheme = s.currentTheme;
             if (typeof s.currentLang === "string") currentLang = s.currentLang;
             if (typeof s.matchStartTime === "number") matchStartTime = s.matchStartTime;
-            if (s.currentFormat === "americano" || s.currentFormat === "standard") {
+            if (s.currentFormat === "classic" || s.currentFormat === "americano") {
                 currentFormat = s.currentFormat;
             }
             if (s.formatOptions) {
+                if (s.formatOptions.classic) {
+                    var c = s.formatOptions.classic;
+                    if (c.deuceSystem) formatOptions.classic.deuceSystem = c.deuceSystem;
+                    if (typeof c.tiebreak7 === "boolean") formatOptions.classic.tiebreak7 = c.tiebreak7;
+                    if (typeof c.superTiebreak === "boolean") formatOptions.classic.superTiebreak = c.superTiebreak;
+                    if (typeof c.bestOf5 === "boolean") formatOptions.classic.bestOf5 = c.bestOf5;
+                }
                 if (s.formatOptions.americano) {
                     var a = s.formatOptions.americano;
+                    if (typeof a.autoServe === "boolean") formatOptions.americano.autoServe = a.autoServe;
                     if (typeof a.goldenPoint === "boolean") formatOptions.americano.goldenPoint = a.goldenPoint;
-                    if (typeof a.tiebreak7 === "boolean") formatOptions.americano.tiebreak7 = a.tiebreak7;
-                    if (typeof a.superTiebreak === "boolean") formatOptions.americano.superTiebreak = a.superTiebreak;
-                    if (typeof a.bestOf5 === "boolean") formatOptions.americano.bestOf5 = a.bestOf5;
-                }
-                if (s.formatOptions.standard) {
-                    var sd = s.formatOptions.standard;
-                    if (typeof sd.autoServe === "boolean") formatOptions.standard.autoServe = sd.autoServe;
-                    if (typeof sd.goldenPoint === "boolean") formatOptions.standard.goldenPoint = sd.goldenPoint;
-                    if (typeof sd.goldenScore === "string") formatOptions.standard.goldenScore = sd.goldenScore;
+                    if (typeof a.goldenScore === "string") formatOptions.americano.goldenScore = a.goldenScore;
                 }
             }
             if (Array.isArray(s.tennisPoints) && s.tennisPoints.length === 2) tennisPoints = s.tennisPoints;
@@ -2528,6 +2616,8 @@
             if (typeof s.matchOver === "boolean") matchOver = s.matchOver;
             if (typeof s.inTiebreak === "boolean") inTiebreak = s.inTiebreak;
             if (Array.isArray(s.tiebreakPoints) && s.tiebreakPoints.length === 2) tiebreakPoints = s.tiebreakPoints;
+            if (typeof s.starPointStage === "number") starPointStage = s.starPointStage;
+            if (typeof s.classicServePos === "number") classicServePos = s.classicServePos;
         } catch (e) { console.warn("load error", e); }
     }
 
@@ -2586,7 +2676,6 @@
         $("themeDark").addEventListener("click", function () { setTheme("dark"); });
         $("themeLight").addEventListener("click", function () { setTheme("light"); });
 
-        /* Выбор языка */
         var langOpts = document.querySelectorAll(".lang-option");
         for (var k = 0; k < langOpts.length; k++) {
             (function (opt) {
@@ -2597,48 +2686,46 @@
             })(langOpts[k]);
         }
 
-        /* Формат: клик по карточке формата */
+        $("formatClassic").addEventListener("click", function () { setFormat("classic"); });
         $("formatAmericano").addEventListener("click", function () { setFormat("americano"); });
-        $("formatStandard").addEventListener("click", function () { setFormat("standard"); });
 
-        /* Тумблеры Американо */
-        $("optGoldenPoint").addEventListener("click", function () {
-            this.classList.toggle("on");
-            formatOptions.americano.goldenPoint = this.classList.contains("on");
+        /* Классика */
+        $("classicDeuceSystem").addEventListener("change", function () {
+            formatOptions.classic.deuceSystem = this.value;
             saveState();
         });
         $("optTiebreak7").addEventListener("click", function () {
             this.classList.toggle("on");
-            formatOptions.americano.tiebreak7 = this.classList.contains("on");
+            formatOptions.classic.tiebreak7 = this.classList.contains("on");
             saveState();
         });
         $("optSuperTiebreak").addEventListener("click", function () {
             this.classList.toggle("on");
-            formatOptions.americano.superTiebreak = this.classList.contains("on");
+            formatOptions.classic.superTiebreak = this.classList.contains("on");
             saveState();
         });
         $("optBestOf5").addEventListener("click", function () {
             this.classList.toggle("on");
-            formatOptions.americano.bestOf5 = this.classList.contains("on");
+            formatOptions.classic.bestOf5 = this.classList.contains("on");
             saveState();
         });
 
-        /* Тумблеры Стандартного */
+        /* Американо */
         $("optAutoServe").addEventListener("click", function () {
             this.classList.toggle("on");
-            formatOptions.standard.autoServe = this.classList.contains("on");
+            formatOptions.americano.autoServe = this.classList.contains("on");
             saveState();
         });
         $("optStdGolden").addEventListener("click", function () {
             this.classList.toggle("on");
-            formatOptions.standard.goldenPoint = this.classList.contains("on");
+            formatOptions.americano.goldenPoint = this.classList.contains("on");
             $("stdGoldenScoreField").style.display =
-                formatOptions.standard.goldenPoint ? "block" : "none";
+                formatOptions.americano.goldenPoint ? "block" : "none";
             saveState();
         });
 
         $("stdGoldenScoreInput").addEventListener("input", function () {
-            formatOptions.standard.goldenScore = this.value.trim() || "10:10";
+            formatOptions.americano.goldenScore = this.value.trim() || "10:10";
             saveState();
         });
     }
@@ -2658,6 +2745,7 @@
         localStorage.removeItem("padel_score_v14");
         localStorage.removeItem("padel_score_v15");
         localStorage.removeItem("padel_score_v16");
+        localStorage.removeItem("padel_score_v17");
     } catch (e) {}
 
     bind();
