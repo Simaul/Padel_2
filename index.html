@@ -29,7 +29,7 @@
         --input-border: #3a424a;
         --modal-bg: #262b30;
         --modal-border: #3a424a;
-        --overlay: rgba(0,0,0,0.7);
+        --overlay: rgba(0,0,0,0.75);
         --timer-bg: #262b30;
         --timer-border: #333a41;
         --group-bg: #2a2f35;
@@ -61,7 +61,7 @@
         --input-border: #d0ccc4;
         --modal-bg: #ffffff;
         --modal-border: #e0dcd2;
-        --overlay: rgba(0,0,0,0.4);
+        --overlay: rgba(0,0,0,0.5);
         --timer-bg: #ffffff;
         --timer-border: #e0dcd2;
         --group-bg: #f0ece4;
@@ -146,9 +146,7 @@
         font-variant-numeric: tabular-nums;
     }
 
-    .set-chip.current .set-chip-score {
-        color: var(--accent-light);
-    }
+    .set-chip.current .set-chip-score { color: var(--accent-light); }
 
     .scoreboard {
         display: grid;
@@ -185,11 +183,8 @@
         background: var(--card-serving-bg);
     }
 
-    .score-card.serving:active {
-        background: var(--card-serving-active);
-    }
+    .score-card.serving:active { background: var(--card-serving-active); }
 
-    /* Подсветка для Star Point / Golden Point */
     .score-card.star-point {
         border-color: var(--accent-gold);
         box-shadow: 0 0 0 2px var(--accent-gold) inset;
@@ -256,14 +251,8 @@
         margin-top: 30px;
     }
 
-    .points.tennis-text {
-        font-size: 76px;
-    }
-
-    .points.star-gold {
-        color: var(--accent-gold);
-    }
-
+    .points.tennis-text { font-size: 76px; }
+    .points.star-gold { color: var(--accent-gold); }
     .score-card.serving .points { color: var(--accent-light); }
 
     .games-score {
@@ -358,10 +347,7 @@
         background: var(--btn-bg-active);
     }
 
-    .reset {
-        background: var(--btn-red);
-        color: #ffffff;
-    }
+    .reset { background: var(--btn-red); color: #ffffff; }
     .reset:active { background: var(--btn-red-active); }
 
     .message {
@@ -511,7 +497,8 @@
         white-space: nowrap;
     }
 
-    .field input {
+    .field input,
+    .field select {
         width: 100%;
         background: var(--input-bg);
         border: 2px solid var(--input-border);
@@ -521,9 +508,11 @@
         font-size: 16px;
         font-weight: 600;
         outline: none;
+        font-family: inherit;
     }
 
-    .field input:focus { border-color: var(--accent); }
+    .field input:focus,
+    .field select:focus { border-color: var(--accent); }
 
     .toggle-row {
         display: flex;
@@ -566,7 +555,11 @@
     .toggle.on { background: var(--btn-green); }
     .toggle.on::after { transform: translateX(22px); }
 
-    .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+    .modal-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
 
     .modal-buttons button {
         flex: 1;
@@ -580,10 +573,7 @@
         color: var(--text);
     }
 
-    .modal-buttons .save {
-        background: var(--btn-green);
-        color: #fff;
-    }
+    .modal-buttons .save { background: var(--btn-green); color: #fff; }
 
     .hidden { display: none !important; }
 
@@ -691,41 +681,7 @@
         font-weight: 700;
     }
 
-    .lang-option {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px;
-        background: var(--input-bg);
-        border: 2px solid var(--modal-border);
-        border-radius: 12px;
-        margin-bottom: 10px;
-        cursor: pointer;
-        font-size: 15px;
-        font-weight: 600;
-        color: var(--text);
-    }
-
-    .lang-option:active { background: var(--btn-bg); }
-    .lang-option.selected { border-color: var(--accent); }
-
-    .lang-option .lang-left {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .lang-option .lang-flag {
-        font-size: 22px;
-        line-height: 1;
-    }
-
-    .lang-option .check {
-        color: var(--accent);
-        font-size: 18px;
-        font-weight: 800;
-    }
-
+    .lang-option,
     .theme-option {
         display: flex;
         align-items: center;
@@ -741,8 +697,21 @@
         color: var(--text);
     }
 
+    .lang-option:active,
     .theme-option:active { background: var(--btn-bg); }
+
+    .lang-option.selected,
     .theme-option.selected { border-color: var(--accent); }
+
+    .lang-option .lang-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .lang-option .lang-flag { font-size: 22px; line-height: 1; }
+
+    .lang-option .check,
     .theme-option .check {
         color: var(--accent);
         font-size: 18px;
@@ -841,10 +810,7 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Symbol", sans-serif;
     }
 
-    .match-delete:active {
-        background: var(--btn-red);
-        color: #fff;
-    }
+    .match-delete:active { background: var(--btn-red); color: #fff; }
 
     .empty-matches {
         text-align: center;
@@ -873,10 +839,187 @@
     }
 
     .match-action-row button.danger { background: var(--btn-red); }
+    .match-action-row button:active { transform: scale(0.97); opacity: 0.9; }
 
-    .match-action-row button:active {
+    /* ============================================================
+       ПЛАШКА ПОБЕДЫ
+       ============================================================ */
+    .victory-overlay {
+        position: fixed;
+        top: 0; right: 0; bottom: 0; left: 0;
+        background: var(--overlay);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 300;
+        padding: 20px;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .victory-overlay.open { display: flex; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .victory-card {
+        background: var(--modal-bg);
+        border-radius: 22px;
+        padding: 28px 22px 22px;
+        width: 100%;
+        max-width: 420px;
+        border: 3px solid var(--accent-gold);
+        max-height: 90vh;
+        overflow-y: auto;
+        text-align: center;
+        animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes popIn {
+        0% { transform: scale(0.5); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .victory-trophy {
+        font-size: 64px;
+        line-height: 1;
+        margin-bottom: 8px;
+        animation: bounce 1.5s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+    }
+
+    .victory-title {
+        font-size: 22px;
+        font-weight: 900;
+        color: var(--accent-gold);
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+    }
+
+    .victory-winner {
+        font-size: 26px;
+        font-weight: 900;
+        color: var(--accent-light);
+        margin-bottom: 6px;
+        line-height: 1.2;
+        word-break: break-word;
+    }
+
+    .victory-congrats {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+    }
+
+    .victory-stats {
+        background: var(--input-bg);
+        border: 2px solid var(--modal-border);
+        border-radius: 14px;
+        padding: 14px;
+        margin-bottom: 18px;
+        text-align: left;
+    }
+
+    .victory-stats-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--text-dim);
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .victory-set-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+        border-bottom: 1px solid var(--modal-border);
+    }
+
+    .victory-set-row:last-child { border-bottom: none; }
+
+    .victory-set-label {
+        font-size: 11px;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 800;
+    }
+
+    .victory-set-score {
+        font-variant-numeric: tabular-nums;
+        color: var(--accent-light);
+        font-size: 16px;
+        font-weight: 800;
+    }
+
+    .victory-set-score.winner { color: var(--accent-gold); }
+
+    .victory-players {
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid var(--modal-border);
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.6;
+    }
+
+    .victory-players .team-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 3px 0;
+    }
+
+    .victory-players .team-row .team-name {
+        font-weight: 800;
+        color: var(--text);
+        flex-shrink: 0;
+    }
+
+    .victory-players .team-row .players-names {
+        color: var(--text-muted);
+        text-align: right;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .victory-time {
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-bottom: 16px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .victory-button {
+        width: 100%;
+        border: none;
+        border-radius: 14px;
+        padding: 16px;
+        font-size: 16px;
+        font-weight: 800;
+        cursor: pointer;
+        background: var(--btn-green);
+        color: #fff;
+        letter-spacing: 1px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Symbol", sans-serif;
+    }
+
+    .victory-button:active {
         transform: scale(0.97);
-        opacity: 0.9;
+        background: var(--btn-green-active);
     }
 
     @media (orientation: landscape) {
@@ -948,6 +1091,10 @@
             font-size: 0;
             overflow: hidden;
         }
+
+        .victory-trophy { font-size: 48px; }
+        .victory-title { font-size: 18px; }
+        .victory-winner { font-size: 22px; }
     }
 
     @media (orientation: landscape) and (max-height: 400px) {
@@ -1091,7 +1238,6 @@
 <!-- ШТОРКА: СОСТАВ -->
 <div class="sheet-overlay" id="sheetRoster">
     <div class="sheet">
-
         <div class="team-group">
             <div class="team-group-title" id="rosterGroup1">Team 1</div>
             <div class="field">
@@ -1154,7 +1300,7 @@
 
             <div class="field">
                 <label id="classicDeuceSystemLabel">At 40:40</label>
-                <select id="classicDeuceSystem" style="width:100%;background:var(--input-bg);border:2px solid var(--input-border);border-radius:10px;padding:12px;color:var(--text);font-size:16px;font-weight:600;outline:none;">
+                <select id="classicDeuceSystem">
                     <option value="classic" id="optDeuceClassic">Classic (advantage)</option>
                     <option value="golden" id="optDeuceGolden">Golden Point</option>
                     <option value="star" id="optDeuceStar">Star Point (FIP 2026)</option>
@@ -1203,31 +1349,19 @@
         <h2 id="sheetLanguageTitle">Language</h2>
 
         <div class="lang-option" data-lang="en">
-            <span class="lang-left">
-                <span class="lang-flag">🇬🇧</span>
-                <span>English</span>
-            </span>
+            <span class="lang-left"><span class="lang-flag">🇬🇧</span><span>English</span></span>
             <span class="check" id="checkLangEn"></span>
         </div>
         <div class="lang-option" data-lang="es">
-            <span class="lang-left">
-                <span class="lang-flag">🇪🇸</span>
-                <span>Español</span>
-            </span>
+            <span class="lang-left"><span class="lang-flag">🇪🇸</span><span>Español</span></span>
             <span class="check" id="checkLangEs"></span>
         </div>
         <div class="lang-option" data-lang="ru">
-            <span class="lang-left">
-                <span class="lang-flag">🇷🇺</span>
-                <span>Русский</span>
-            </span>
+            <span class="lang-left"><span class="lang-flag">🇷🇺</span><span>Русский</span></span>
             <span class="check" id="checkLangRu"></span>
         </div>
         <div class="lang-option" data-lang="uk">
-            <span class="lang-left">
-                <span class="lang-flag">🇺🇦</span>
-                <span>Українська</span>
-            </span>
+            <span class="lang-left"><span class="lang-flag">🇺🇦</span><span>Українська</span></span>
             <span class="check" id="checkLangUk"></span>
         </div>
 
@@ -1290,11 +1424,31 @@
     </div>
 </div>
 
+<!-- ПЛАШКА ПОБЕДЫ -->
+<div class="victory-overlay" id="victoryOverlay">
+    <div class="victory-card">
+        <div class="victory-trophy">🏆</div>
+        <div class="victory-title" id="victoryTitle">VICTORY!</div>
+        <div class="victory-winner" id="victoryWinner">Team 1</div>
+        <div class="victory-congrats" id="victoryCongrats">Congratulations!</div>
+
+        <div class="victory-stats">
+            <div class="victory-stats-title" id="victoryStatsTitle">Match score</div>
+            <div id="victorySetsList"></div>
+            <div class="victory-players" id="victoryPlayers"></div>
+        </div>
+
+        <div class="victory-time" id="victoryTime"></div>
+
+        <button type="button" class="victory-button" id="btnVictoryClose">OK</button>
+    </div>
+</div>
+
 <script>
 (function () {
     "use strict";
 
-    var STORAGE_KEY = "padel_score_v18";
+    var STORAGE_KEY = "padel_score_v19";
     var MATCHES_KEY = "padel_matches_v1";
 
     /* ============================================================
@@ -1305,24 +1459,13 @@
             title: "🎾 Padel Score 2",
             menuTitle: "Settings",
             saveMatch: "Save match",
-            menuRoster: "Roster",
-            menuMatches: "Matches",
-            menuLanguage: "Language",
-            menuFormat: "Format",
-            menuInterface: "Interface",
-            menuTheme: "Theme",
-            close: "Close",
-            done: "Done",
-            rosterGroup: "Team",
-            teamNameLabel: "Team name",
-            playerLabel: "Player",
-            teamNameDefault: "Team",
-            playerDefault: "Player",
-            serveWord: "serve",
-            sheetLanguageTitle: "Language",
-            sheetFormatTitle: "Format",
-            sheetInterfaceTitle: "Interface",
-            sheetThemeTitle: "Theme",
+            menuRoster: "Roster", menuMatches: "Matches", menuLanguage: "Language",
+            menuFormat: "Format", menuInterface: "Interface", menuTheme: "Theme",
+            close: "Close", done: "Done", ok: "OK",
+            rosterGroup: "Team", teamNameLabel: "Team name", playerLabel: "Player",
+            teamNameDefault: "Team", playerDefault: "Player", serveWord: "serve",
+            sheetLanguageTitle: "Language", sheetFormatTitle: "Format",
+            sheetInterfaceTitle: "Interface", sheetThemeTitle: "Theme",
             sheetMatchesTitle: "Saved matches",
             formatClassicTitle: "Classic",
             formatClassicDesc: "Tennis scoring: 15/30/40, games, sets",
@@ -1340,54 +1483,39 @@
             optAutoServe: "Auto serve rotation",
             optStdGolden: "Golden point",
             stdGoldenScoreLabel: "Golden point at score (e.g. 10:10)",
-            toggleTimer: "Show timer",
-            toggleSwitch: "Show serve switch button",
-            themeDark: "Dark",
-            themeLight: "Light",
+            toggleTimer: "Show timer", toggleSwitch: "Show serve switch button",
+            themeDark: "Dark", themeLight: "Light",
             clearAll: "Clear all",
-            matchSaved: "Match saved",
-            nothingToUndo: "Nothing to undo",
-            newGame: "New game",
-            saved: "Saved",
+            matchSaved: "Match saved", nothingToUndo: "Nothing to undo",
+            newGame: "New game", saved: "Saved",
             allMatchesDeleted: "All matches deleted",
             noMatches: "No saved matches yet",
             nothingToSave: "Score 0:0 — nothing to save",
             newGameConfirm: "Start a new game?",
             deleteMatchConfirm: "Delete this match?",
             clearAllConfirm: "Delete all saved matches?",
-            setWord: "Set",
-            gameWord: "Game",
-            matchWon: "Match won!",
-            setWon: "Set won!",
-            tiebreak: "Tie-break!",
-            starPoint: "Star Point!",
-            goldenPoint: "Golden Point!",
-            formatTagClassic: "Classic",
-            formatTagAmericano: "Americano",
-            formatSwitchConfirm: "Switch format? Current game will be reset."
+            setWord: "Set", gameWord: "Game",
+            matchWon: "Match won!", setWon: "Set won!",
+            tiebreak: "Tie-break!", starPoint: "Star Point!", goldenPoint: "Golden Point!",
+            formatTagClassic: "Classic", formatTagAmericano: "Americano",
+            formatSwitchConfirm: "Switch format? Current game will be reset.",
+            victoryTitle: "VICTORY!",
+            victoryCongrats: "Congratulations!",
+            victoryStatsTitle: "Match score",
+            victoryTime: "Match time",
+            setShort: "Set"
         },
         es: {
             title: "🎾 Padel Score 2",
             menuTitle: "Ajustes",
             saveMatch: "Guardar partido",
-            menuRoster: "Alineación",
-            menuMatches: "Partidos",
-            menuLanguage: "Idioma",
-            menuFormat: "Formato",
-            menuInterface: "Interfaz",
-            menuTheme: "Tema",
-            close: "Cerrar",
-            done: "Listo",
-            rosterGroup: "Equipo",
-            teamNameLabel: "Nombre del equipo",
-            playerLabel: "Jugador",
-            teamNameDefault: "Equipo",
-            playerDefault: "Jugador",
-            serveWord: "saque",
-            sheetLanguageTitle: "Idioma",
-            sheetFormatTitle: "Formato",
-            sheetInterfaceTitle: "Interfaz",
-            sheetThemeTitle: "Tema",
+            menuRoster: "Alineación", menuMatches: "Partidos", menuLanguage: "Idioma",
+            menuFormat: "Formato", menuInterface: "Interfaz", menuTheme: "Tema",
+            close: "Cerrar", done: "Listo", ok: "OK",
+            rosterGroup: "Equipo", teamNameLabel: "Nombre del equipo", playerLabel: "Jugador",
+            teamNameDefault: "Equipo", playerDefault: "Jugador", serveWord: "saque",
+            sheetLanguageTitle: "Idioma", sheetFormatTitle: "Formato",
+            sheetInterfaceTitle: "Interfaz", sheetThemeTitle: "Tema",
             sheetMatchesTitle: "Partidos guardados",
             formatClassicTitle: "Clásico",
             formatClassicDesc: "Puntuación de tenis: 15/30/40, juegos, sets",
@@ -1405,54 +1533,39 @@
             optAutoServe: "Rotación automática de saque",
             optStdGolden: "Punto dorado",
             stdGoldenScoreLabel: "Punto dorado al marcador (ej. 10:10)",
-            toggleTimer: "Mostrar cronómetro",
-            toggleSwitch: "Mostrar botón de cambio de saque",
-            themeDark: "Oscuro",
-            themeLight: "Claro",
+            toggleTimer: "Mostrar cronómetro", toggleSwitch: "Mostrar botón de cambio de saque",
+            themeDark: "Oscuro", themeLight: "Claro",
             clearAll: "Borrar todo",
-            matchSaved: "Partido guardado",
-            nothingToUndo: "Nada que deshacer",
-            newGame: "Nuevo partido",
-            saved: "Guardado",
+            matchSaved: "Partido guardado", nothingToUndo: "Nada que deshacer",
+            newGame: "Nuevo partido", saved: "Guardado",
             allMatchesDeleted: "Todos los partidos borrados",
             noMatches: "Aún no hay partidos guardados",
             nothingToSave: "Marcador 0:0 — no hay nada que guardar",
             newGameConfirm: "¿Empezar un nuevo partido?",
             deleteMatchConfirm: "¿Borrar este partido?",
             clearAllConfirm: "¿Borrar todos los partidos guardados?",
-            setWord: "Set",
-            gameWord: "Juego",
-            matchWon: "¡Partido ganado!",
-            setWon: "¡Set ganado!",
-            tiebreak: "¡Tie-break!",
-            starPoint: "¡Star Point!",
-            goldenPoint: "¡Punto Dorado!",
-            formatTagClassic: "Clásico",
-            formatTagAmericano: "Americano",
-            formatSwitchConfirm: "¿Cambiar formato? El juego actual se reiniciará."
+            setWord: "Set", gameWord: "Juego",
+            matchWon: "¡Partido ganado!", setWon: "¡Set ganado!",
+            tiebreak: "¡Tie-break!", starPoint: "¡Star Point!", goldenPoint: "¡Punto Dorado!",
+            formatTagClassic: "Clásico", formatTagAmericano: "Americano",
+            formatSwitchConfirm: "¿Cambiar formato? El juego actual se reiniciará.",
+            victoryTitle: "¡VICTORIA!",
+            victoryCongrats: "¡Felicidades!",
+            victoryStatsTitle: "Marcador del partido",
+            victoryTime: "Duración del partido",
+            setShort: "Set"
         },
         ru: {
             title: "🎾 Padel Score 2",
             menuTitle: "Настройки",
             saveMatch: "Сохранить матч",
-            menuRoster: "Состав",
-            menuMatches: "Матчи",
-            menuLanguage: "Язык",
-            menuFormat: "Формат",
-            menuInterface: "Интерфейс",
-            menuTheme: "Тема",
-            close: "Закрыть",
-            done: "Готово",
-            rosterGroup: "Команда",
-            teamNameLabel: "Название команды",
-            playerLabel: "Игрок",
-            teamNameDefault: "Команда",
-            playerDefault: "Игрок",
-            serveWord: "подача",
-            sheetLanguageTitle: "Язык",
-            sheetFormatTitle: "Формат",
-            sheetInterfaceTitle: "Интерфейс",
-            sheetThemeTitle: "Тема",
+            menuRoster: "Состав", menuMatches: "Матчи", menuLanguage: "Язык",
+            menuFormat: "Формат", menuInterface: "Интерфейс", menuTheme: "Тема",
+            close: "Закрыть", done: "Готово", ok: "ОК",
+            rosterGroup: "Команда", teamNameLabel: "Название команды", playerLabel: "Игрок",
+            teamNameDefault: "Команда", playerDefault: "Игрок", serveWord: "подача",
+            sheetLanguageTitle: "Язык", sheetFormatTitle: "Формат",
+            sheetInterfaceTitle: "Интерфейс", sheetThemeTitle: "Тема",
             sheetMatchesTitle: "Сохранённые матчи",
             formatClassicTitle: "Классический",
             formatClassicDesc: "Теннисный счёт: 15/30/40, геймы, сеты",
@@ -1472,52 +1585,38 @@
             stdGoldenScoreLabel: "Золотое очко при счёте (напр. 10:10)",
             toggleTimer: "Показывать таймер",
             toggleSwitch: "Показывать кнопку смены подачи",
-            themeDark: "Тёмная",
-            themeLight: "Светлая",
+            themeDark: "Тёмная", themeLight: "Светлая",
             clearAll: "Очистить все",
-            matchSaved: "Матч сохранён",
-            nothingToUndo: "Нечего отменять",
-            newGame: "Новая игра",
-            saved: "Сохранено",
+            matchSaved: "Матч сохранён", nothingToUndo: "Нечего отменять",
+            newGame: "Новая игра", saved: "Сохранено",
             allMatchesDeleted: "Все матчи удалены",
             noMatches: "Пока нет сохранённых матчей",
             nothingToSave: "Счёт 0:0 — нечего сохранять",
             newGameConfirm: "Начать новую игру?",
             deleteMatchConfirm: "Удалить этот матч?",
             clearAllConfirm: "Удалить все сохранённые матчи?",
-            setWord: "Сет",
-            gameWord: "Гейм",
-            matchWon: "Матч выигран!",
-            setWon: "Сет выигран!",
-            tiebreak: "Тай-брейк!",
-            starPoint: "Star Point!",
-            goldenPoint: "Золотое очко!",
-            formatTagClassic: "Классический",
-            formatTagAmericano: "Американо",
-            formatSwitchConfirm: "Сменить формат? Текущая игра будет сброшена."
+            setWord: "Сет", gameWord: "Гейм",
+            matchWon: "Матч выигран!", setWon: "Сет выигран!",
+            tiebreak: "Тай-брейк!", starPoint: "Star Point!", goldenPoint: "Золотое очко!",
+            formatTagClassic: "Классический", formatTagAmericano: "Американо",
+            formatSwitchConfirm: "Сменить формат? Текущая игра будет сброшена.",
+            victoryTitle: "ПОБЕДА!",
+            victoryCongrats: "Поздравляем!",
+            victoryStatsTitle: "Турнирный счёт",
+            victoryTime: "Время матча",
+            setShort: "Сет"
         },
         uk: {
             title: "🎾 Padel Score 2",
             menuTitle: "Налаштування",
             saveMatch: "Зберегти матч",
-            menuRoster: "Склад",
-            menuMatches: "Матчі",
-            menuLanguage: "Мова",
-            menuFormat: "Формат",
-            menuInterface: "Інтерфейс",
-            menuTheme: "Тема",
-            close: "Закрити",
-            done: "Готово",
-            rosterGroup: "Команда",
-            teamNameLabel: "Назва команди",
-            playerLabel: "Гравець",
-            teamNameDefault: "Команда",
-            playerDefault: "Гравець",
-            serveWord: "подача",
-            sheetLanguageTitle: "Мова",
-            sheetFormatTitle: "Формат",
-            sheetInterfaceTitle: "Інтерфейс",
-            sheetThemeTitle: "Тема",
+            menuRoster: "Склад", menuMatches: "Матчі", menuLanguage: "Мова",
+            menuFormat: "Формат", menuInterface: "Інтерфейс", menuTheme: "Тема",
+            close: "Закрити", done: "Готово", ok: "ОК",
+            rosterGroup: "Команда", teamNameLabel: "Назва команди", playerLabel: "Гравець",
+            teamNameDefault: "Команда", playerDefault: "Гравець", serveWord: "подача",
+            sheetLanguageTitle: "Мова", sheetFormatTitle: "Формат",
+            sheetInterfaceTitle: "Інтерфейс", sheetThemeTitle: "Тема",
             sheetMatchesTitle: "Збережені матчі",
             formatClassicTitle: "Класичний",
             formatClassicDesc: "Тенісний рахунок: 15/30/40, гейми, сети",
@@ -1537,29 +1636,26 @@
             stdGoldenScoreLabel: "Золоте очко при рахунку (напр. 10:10)",
             toggleTimer: "Показувати таймер",
             toggleSwitch: "Показувати кнопку зміни подачі",
-            themeDark: "Темна",
-            themeLight: "Світла",
+            themeDark: "Темна", themeLight: "Світла",
             clearAll: "Очистити всі",
-            matchSaved: "Матч збережено",
-            nothingToUndo: "Нічого скасовувати",
-            newGame: "Нова гра",
-            saved: "Збережено",
+            matchSaved: "Матч збережено", nothingToUndo: "Нічого скасовувати",
+            newGame: "Нова гра", saved: "Збережено",
             allMatchesDeleted: "Всі матчі видалено",
             noMatches: "Поки немає збережених матчів",
             nothingToSave: "Рахунок 0:0 — немає що зберігати",
             newGameConfirm: "Почати нову гру?",
             deleteMatchConfirm: "Видалити цей матч?",
             clearAllConfirm: "Видалити всі збережені матчі?",
-            setWord: "Сет",
-            gameWord: "Гейм",
-            matchWon: "Матч виграно!",
-            setWon: "Сет виграно!",
-            tiebreak: "Тай-брейк!",
-            starPoint: "Star Point!",
-            goldenPoint: "Золоте очко!",
-            formatTagClassic: "Класичний",
-            formatTagAmericano: "Американо",
-            formatSwitchConfirm: "Змінити формат? Поточна гра буде скинута."
+            setWord: "Сет", gameWord: "Гейм",
+            matchWon: "Матч виграно!", setWon: "Сет виграно!",
+            tiebreak: "Тай-брейк!", starPoint: "Star Point!", goldenPoint: "Золоте очко!",
+            formatTagClassic: "Класичний", formatTagAmericano: "Американо",
+            formatSwitchConfirm: "Змінити формат? Поточна гра буде скинута.",
+            victoryTitle: "ПЕРЕМОГА!",
+            victoryCongrats: "Вітаємо!",
+            victoryStatsTitle: "Турнірний рахунок",
+            victoryTime: "Час матчу",
+            setShort: "Сет"
         }
     };
 
@@ -1578,12 +1674,11 @@
     var currentLang = "en";
     var matchStartTime = null;
 
-    /* Формат: "classic" | "americano" */
     var currentFormat = "americano";
 
     var formatOptions = {
         classic: {
-            deuceSystem: "star",       // "classic" | "golden" | "star"
+            deuceSystem: "star",
             tiebreak7: true,
             superTiebreak: false,
             bestOf5: false
@@ -1595,23 +1690,25 @@
         }
     };
 
-    /* Состояние для КЛАССИЧЕСКОГО */
+    /* Классический */
     var tennisPoints = [0, 0];
     var games = [[0, 0], [0, 0], [0, 0]];
     var currentSet = 0;
     var matchOver = false;
     var inTiebreak = false;
     var tiebreakPoints = [0, 0];
+    var starPointStage = 0;
 
-    /* Star Point: счётчик отыгранных advantage в текущем гейме.
-       Когда оба игрока отыграли по одному advantage и счёт снова 40:40 —
-       следующее очко решающее. */
-    var starPointStage = 0;   // 0 = нет, 1 = первое AD отыграно, 2 = второе AD отыграно, 3 = Star Point активен
-
-    /* Подача в Классическом: кто из 4 игроков подаёт текущий гейм.
-       Храним порядок: кому подавать следующий гейм. */
+    /* Порядок подачи в Классическом.
+       0→2→1→3: первый игрок команды 1 → первый игрок команды 2 →
+                 второй игрок команды 1 → второй игрок команды 2 */
     var classicServeOrder = [0, 2, 1, 3];
     var classicServePos = 0;
+
+    /* Подача первого гейма следующего сета. По правилам FIP: подаёт та команда,
+       которая НЕ подавала первой в предыдущем сете. Внутри команды — игрок,
+       который ещё не подавал (или по порядку). */
+    var classicSetStartPos = 0;   /* 0 или 2 — индекс начала сета */
 
     var timerSeconds = 0;
     var timerInterval = null;
@@ -1625,12 +1722,6 @@
     function t(key) {
         var lang = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
         return lang[key] || TRANSLATIONS.en[key] || key;
-    }
-
-    function nextServer(idx) {
-        var pos = order.indexOf(idx);
-        if (pos === -1) pos = 0;
-        return order[(pos + 1) % 4];
     }
 
     function serverTeam() {
@@ -1649,7 +1740,8 @@
             inTiebreak: inTiebreak,
             tiebreakPoints: [tiebreakPoints[0], tiebreakPoints[1]],
             starPointStage: starPointStage,
-            classicServePos: classicServePos
+            classicServePos: classicServePos,
+            classicSetStartPos: classicSetStartPos
         });
     }
 
@@ -1675,35 +1767,23 @@
     }
 
     /* ============================================================
-       ЛОГИКА АМЕРИКАНО
+       АМЕРИКАНО
        ============================================================ */
     function addPointAmericano(team) {
         points[team]++;
 
-        /* Золотое очко в Американо */
-        if (formatOptions.americano.goldenPoint) {
-            var parts = formatOptions.americano.goldenScore.split(":");
-            if (parts.length === 2) {
-                var tgt = [parseInt(parts[0], 10) || 0, parseInt(parts[1], 10) || 0];
-                if (points[0] === tgt[0] && points[1] === tgt[1]) {
-                    /* Ничего особого — просто помечаем, что сейчас разыгрывается решающее */
-                }
-            }
-        }
-
-        /* Автопереход подачи */
         if (formatOptions.americano.autoServe) {
             if (serveCount === 1) {
                 serveCount = 2;
             } else {
                 serveCount = 1;
-                serverIndex = nextServer(serverIndex);
+                serverIndex = order[(order.indexOf(serverIndex) + 1) % 4];
             }
         }
     }
 
     /* ============================================================
-       ЛОГИКА КЛАССИЧЕСКОГО
+       КЛАССИЧЕСКИЙ — по правилам FIP 2026
        ============================================================ */
     function addPointClassic(team) {
         var opp = team === 0 ? 1 : 0;
@@ -1713,13 +1793,14 @@
             tiebreakPoints[team]++;
             var target = isSuperTiebreak() ? 10 : 7;
             if (tiebreakPoints[team] >= target && tiebreakPoints[team] - tiebreakPoints[opp] >= 2) {
-                /* Победа в тай-брейке — забираем гейм и сет */
+                /* Победа в тай-брейке — гейм и, возможно, сет */
                 games[currentSet][team]++;
                 inTiebreak = false;
                 tiebreakPoints = [0, 0];
-                winSet(team);
+                checkSetWon(team);
             } else {
-                /* Смена подачи в тай-брейке: после 1-го очка и далее каждые 2 очка */
+                /* Смена подачи в тай-брейке: после 1-го очка, потом каждые 2 очка
+                   (нечётная сумма очков → смена) */
                 if ((tiebreakPoints[0] + tiebreakPoints[1]) % 2 === 1) {
                     classicServePos = (classicServePos + 1) % 4;
                     serverIndex = classicServeOrder[classicServePos];
@@ -1731,50 +1812,35 @@
         /* --- ОБЫЧНЫЙ ГЕЙМ --- */
         var p = tennisPoints[team];
         var o = tennisPoints[opp];
+        var deuceSystem = formatOptions.classic.deuceSystem;
 
-        /* Система при 40:40 */
-        var deuce = (p === 3 && o === 3);
-        var advMe = (p === 4);
-        var advOpp = (o === 4);
+        /* 40:40 */
+        if (p === 3 && o === 3) {
+            if (deuceSystem === "classic" || deuceSystem === "star") {
+                /* Даём ADV (в Star Point — на первом-втором круге, потом решающее) */
+                if (deuceSystem === "star" && starPointStage >= 3) {
+                    /* Решающее очко Star Point */
+                    winGame(team);
+                } else {
+                    tennisPoints[team] = 4;
+                }
+            } else {
+                /* Golden Point — сразу победа в гейме */
+                winGame(team);
+            }
+            return;
+        }
 
-        /* Star Point: если активен stage 3, следующее очко решающее */
-        var starActive = (formatOptions.classic.deuceSystem === "star" && starPointStage >= 3);
-
-        if (deuce && starActive) {
-            /* Решающее очко — победа в гейме */
+        /* Игрок с ADV выиграл очко */
+        if (p === 4) {
             winGame(team);
             return;
         }
 
-        if (deuce && formatOptions.classic.deuceSystem === "golden") {
-            /* Золотое очко — победа в гейме */
-            winGame(team);
-            return;
-        }
-
-        if (deuce && formatOptions.classic.deuceSystem === "classic") {
-            /* Классика: обычный AD */
-            tennisPoints[team] = 4;  // AD
-            return;
-        }
-
-        if (deuce && formatOptions.classic.deuceSystem === "star") {
-            /* Star Point: разыгрывается AD. Игрок получает AD.
-               Счётчик stage увеличивается, когда AD отыгран соперником. */
-            tennisPoints[team] = 4;  // AD
-            return;
-        }
-
-        if (advMe) {
-            /* Игрок с AD выиграл очко — победа в гейме */
-            winGame(team);
-            return;
-        }
-
-        if (advOpp) {
-            /* Игрок с AD проиграл очко сопернику — возвращаемся к 40:40 */
-            tennisPoints[opp] = 3;
-            if (formatOptions.classic.deuceSystem === "star") {
+        /* Игрок с ADV проиграл очко сопернику */
+        if (o === 4) {
+            tennisPoints[opp] = 3;   /* возвращаем соперника к 40 */
+            if (deuceSystem === "star") {
                 starPointStage++;
                 if (starPointStage >= 3) {
                     showMessage(t("starPoint"));
@@ -1783,20 +1849,15 @@
             return;
         }
 
+        /* Обычное начисление 0→15→30→40 */
         if (p < 3) {
             tennisPoints[team]++;
-            return;
         }
-
-        /* Если ничего не подошло (не должно случиться) — просто +1 */
-        tennisPoints[team]++;
     }
 
     function isSuperTiebreak() {
         if (!formatOptions.classic.superTiebreak) return false;
-        if (formatOptions.classic.bestOf5) {
-            return currentSet === 4;
-        }
+        if (formatOptions.classic.bestOf5) return currentSet === 4;
         return currentSet === 2;
     }
 
@@ -1810,29 +1871,25 @@
 
         /* Победа в сете */
         if (myGames >= 6 && myGames - oppGames >= 2) {
-            winSet(team);
+            checkSetWon(team);
             return;
         }
 
         /* 6:6 → тай-брейк */
         if (myGames === 6 && oppGames === 6) {
-            if (isSuperTiebreak()) {
-                inTiebreak = true;
-                tiebreakPoints = [0, 0];
-                showMessage(t("tiebreak"));
-            } else if (formatOptions.classic.tiebreak7) {
+            if (formatOptions.classic.tiebreak7 || isSuperTiebreak()) {
                 inTiebreak = true;
                 tiebreakPoints = [0, 0];
                 showMessage(t("tiebreak"));
             }
         }
 
-        /* Подача переходит: следующий игрок в порядке */
+        /* Подача следующего гейма — следующий в порядке */
         classicServePos = (classicServePos + 1) % 4;
         serverIndex = classicServeOrder[classicServePos];
     }
 
-    function winSet(team) {
+    function checkSetWon(team) {
         var setsWon = 0;
         for (var i = 0; i < games.length; i++) {
             if (games[i][team] > games[i][1 - team]) setsWon++;
@@ -1842,7 +1899,7 @@
 
         if (setsWon >= needed) {
             matchOver = true;
-            showMessage(t("matchWon"));
+            showVictory(team);
             return;
         }
 
@@ -1852,14 +1909,18 @@
             tiebreakPoints = [0, 0];
             inTiebreak = false;
             starPointStage = 0;
-            /* Смена порядка подачи в новом сете */
-            classicServePos = 0;
-            /* Первый, кто подаёт в новом сете, определяется порядком.
-               Для простоты: продолжаем с текущей позиции. */
+
+            /* По правилам FIP: подача первого гейма нового сета — у той команды,
+               которая НЕ подавала первой в предыдущем сете.
+               classicSetStartPos хранит смещение (0 или 2). */
+            classicSetStartPos = (currentSet % 2 === 0) ? 0 : 2;
+            classicServePos = classicSetStartPos;
+            serverIndex = classicServeOrder[classicServePos];
+
             showMessage(t("setWon"));
         } else {
             matchOver = true;
-            showMessage(t("matchWon"));
+            showVictory(team);
         }
     }
 
@@ -1876,7 +1937,7 @@
             classicServePos = (classicServePos + 1) % 4;
             serverIndex = classicServeOrder[classicServePos];
         } else {
-            serverIndex = nextServer(serverIndex);
+            serverIndex = order[(order.indexOf(serverIndex) + 1) % 4];
         }
         update();
         saveState();
@@ -1899,6 +1960,7 @@
         tiebreakPoints = prev.tiebreakPoints;
         starPointStage = prev.starPointStage;
         classicServePos = prev.classicServePos;
+        classicSetStartPos = prev.classicSetStartPos;
         update();
         saveState();
     }
@@ -1918,12 +1980,74 @@
         tiebreakPoints = [0, 0];
         starPointStage = 0;
         classicServePos = 0;
+        classicSetStartPos = 0;
         update();
         saveState();
         showMessage(t("newGame"));
     }
 
-    /* Дата/время */
+    /* ============================================================
+       ПЛАШКА ПОБЕДЫ
+       ============================================================ */
+    function showVictory(team) {
+        var winnerName = teamNames[team];
+        var loserName = teamNames[1 - team];
+
+        $("victoryWinner").textContent = winnerName;
+        $("victoryTitle").textContent = t("victoryTitle");
+        $("victoryCongrats").textContent = t("victoryCongrats");
+        $("victoryStatsTitle").textContent = t("victoryStatsTitle");
+        $("btnVictoryClose").textContent = t("ok");
+
+        /* Счёт по сетам */
+        var setsA = 0, setsB = 0;
+        var setsHtml = "";
+        for (var i = 0; i < games.length; i++) {
+            var a = games[i][0];
+            var b = games[i][1];
+            if (a === 0 && b === 0 && i > currentSet) continue;
+            if (a > b) setsA++;
+            else if (b > a) setsB++;
+            var winnerClass = (a > b) ? "winner" : "";
+            setsHtml += '<div class="victory-set-row">';
+            setsHtml += '<span class="victory-set-label">' + t("setShort") + ' ' + (i + 1) + '</span>';
+            setsHtml += '<span class="victory-set-score ' + winnerClass + '">' + a + ' : ' + b + '</span>';
+            setsHtml += '</div>';
+        }
+        $("victorySetsList").innerHTML = setsHtml;
+
+        /* Игроки */
+        var playersHtml = "";
+        playersHtml += '<div class="team-row">';
+        playersHtml += '<span class="team-name">' + escapeHtml(teamNames[0]) + '</span>';
+        playersHtml += '<span class="players-names">' + escapeHtml(players[0]) + ', ' + escapeHtml(players[1]) + '</span>';
+        playersHtml += '</div>';
+        playersHtml += '<div class="team-row">';
+        playersHtml += '<span class="team-name">' + escapeHtml(teamNames[1]) + '</span>';
+        playersHtml += '<span class="players-names">' + escapeHtml(players[2]) + ', ' + escapeHtml(players[3]) + '</span>';
+        playersHtml += '</div>';
+        $("victoryPlayers").innerHTML = playersHtml;
+
+        /* Время матча */
+        var timeStr = "";
+        if (matchStartTime !== null) {
+            var dur = Math.floor((Date.now() - matchStartTime) / 1000);
+            var mins = Math.floor(dur / 60);
+            timeStr = t("victoryTime") + ': ' + mins + ' ' +
+                (currentLang === "ru" || currentLang === "uk" ? "мин" : "min");
+        }
+        $("victoryTime").textContent = timeStr;
+
+        $("victoryOverlay").classList.add("open");
+    }
+
+    function hideVictory() {
+        $("victoryOverlay").classList.remove("open");
+    }
+
+    /* ============================================================
+       ДАТА / ВРЕМЯ
+       ============================================================ */
     function pad2(n) { return n < 10 ? "0" + n : "" + n; }
 
     function formatDateTime(ts) {
@@ -1938,7 +2062,9 @@
         return pad2(d.getHours()) + ":" + pad2(d.getMinutes());
     }
 
-    /* Матчи */
+    /* ============================================================
+       МАТЧИ
+       ============================================================ */
     function loadMatches() {
         try {
             var raw = localStorage.getItem(MATCHES_KEY);
@@ -2010,8 +2136,7 @@
 
     function deleteMatch(id) {
         if (!confirm(t("deleteMatchConfirm"))) return;
-        var matches = loadMatches();
-        matches = matches.filter(function (m) { return m.id !== id; });
+        var matches = loadMatches().filter(function (m) { return m.id !== id; });
         saveMatches(matches);
         renderMatchesList();
         updateMatchesCount();
@@ -2043,15 +2168,9 @@
             var dateStr = formatDateTime(m.startTime) + " → " + formatTimeOnly(m.endTime);
             var players1 = m.players[0] + ", " + m.players[1];
             var players2 = m.players[2] + ", " + m.players[3];
-
-            var formatTag;
-            if (m.format === "classic") {
-                formatTag = t("formatTagClassic");
-            } else if (m.format === "americano") {
-                formatTag = t("formatTagAmericano");
-            } else {
-                formatTag = t("formatTagAmericano");  /* старые матчи */
-            }
+            var formatTag = (m.format === "classic")
+                ? t("formatTagClassic")
+                : t("formatTagAmericano");
 
             html += '<div class="match-card">';
             html += '<button type="button" class="match-delete" data-id="' + m.id + '" title="Delete">&#x2715;&#xFE0E;</button>';
@@ -2095,8 +2214,7 @@
         for (var k = 0; k < deleteButtons.length; k++) {
             (function (btn) {
                 btn.addEventListener("click", function () {
-                    var id = parseInt(btn.getAttribute("data-id"), 10);
-                    deleteMatch(id);
+                    deleteMatch(parseInt(btn.getAttribute("data-id"), 10));
                 });
             })(deleteButtons[k]);
         }
@@ -2132,7 +2250,6 @@
         $("server0").textContent = st === 0 ? name : "—";
         $("server1").textContent = st === 1 ? name : "—";
 
-        /* Римская цифра только в Американо */
         if (currentFormat === "americano") {
             $("numeral0").textContent = st === 0 ? numeral : "";
             $("numeral1").textContent = st === 1 ? numeral : "";
@@ -2141,7 +2258,6 @@
             $("numeral1").textContent = "";
         }
 
-        /* Подсветка */
         if (st === 0) {
             $("card0").classList.add("serving");
             $("card1").classList.remove("serving");
@@ -2150,7 +2266,6 @@
             $("card0").classList.remove("serving");
         }
 
-        /* Star Point / Golden Point индикатор */
         $("card0").classList.remove("star-point");
         $("card1").classList.remove("star-point");
         $("score0").classList.remove("star-gold");
@@ -2168,7 +2283,6 @@
             }
         }
 
-        /* Отображение очков */
         if (currentFormat === "classic") {
             $("setsBar").classList.add("visible");
 
@@ -2178,21 +2292,19 @@
                 $("score0").classList.remove("tennis-text");
                 $("score1").classList.remove("tennis-text");
             } else {
-                var t0 = tennisPointText(tennisPoints[0], tennisPoints[1]);
-                var t1 = tennisPointText(tennisPoints[1], tennisPoints[0]);
-                $("score0").textContent = t0;
-                $("score1").textContent = t1;
+                $("score0").textContent = tennisPointText(tennisPoints[0], tennisPoints[1]);
+                $("score1").textContent = tennisPointText(tennisPoints[1], tennisPoints[0]);
                 $("score0").classList.add("tennis-text");
                 $("score1").classList.add("tennis-text");
             }
 
             $("games0").classList.add("visible");
             $("games1").classList.add("visible");
-            $("games0").innerHTML = t("gameWord") + ': <span class="games-num">' + games[currentSet][0] + ' : ' + games[currentSet][1] + '</span>';
+            $("games0").innerHTML = t("gameWord") + ': <span class="games-num">' +
+                games[currentSet][0] + ' : ' + games[currentSet][1] + '</span>';
             $("games1").innerHTML = "";
 
-            var totalSets = formatOptions.classic.bestOf5 ? 5 : 3;
-            updateSetsBar(totalSets);
+            updateSetsBar(formatOptions.classic.bestOf5 ? 5 : 3);
         } else {
             $("setsBar").classList.remove("visible");
             $("games0").classList.remove("visible");
@@ -2219,17 +2331,8 @@
     function updateSetsBar(totalSets) {
         var chips = document.querySelectorAll(".set-chip");
         for (var i = 0; i < chips.length; i++) {
-            if (i < totalSets) {
-                chips[i].style.display = "";
-            } else {
-                chips[i].style.display = "none";
-            }
-
-            if (i === currentSet) {
-                chips[i].classList.add("current");
-            } else {
-                chips[i].classList.remove("current");
-            }
+            chips[i].style.display = (i < totalSets) ? "" : "none";
+            chips[i].classList.toggle("current", i === currentSet);
 
             var a = games[i][0];
             var b = games[i][1];
@@ -2390,7 +2493,6 @@
         renderTimer();
     }
 
-    /* Язык */
     function applyLanguage(lang) {
         currentLang = lang;
         document.documentElement.lang = lang;
@@ -2412,28 +2514,20 @@
         saveState();
     }
 
-    /* Формат */
     function applyFormatUI() {
         $("formatClassic").classList.toggle("selected", currentFormat === "classic");
         $("formatAmericano").classList.toggle("selected", currentFormat === "americano");
         $("checkFormatClassic").textContent = currentFormat === "classic" ? "✓" : "";
         $("checkFormatAmericano").textContent = currentFormat === "americano" ? "✓" : "";
 
-        if (currentFormat === "classic") {
-            $("optionsClassic").style.display = "block";
-            $("optionsAmericano").style.display = "none";
-        } else {
-            $("optionsClassic").style.display = "none";
-            $("optionsAmericano").style.display = "block";
-        }
+        $("optionsClassic").style.display = (currentFormat === "classic") ? "block" : "none";
+        $("optionsAmericano").style.display = (currentFormat === "americano") ? "block" : "none";
 
-        /* Классика */
         $("classicDeuceSystem").value = formatOptions.classic.deuceSystem;
         $("optTiebreak7").classList.toggle("on", formatOptions.classic.tiebreak7);
         $("optSuperTiebreak").classList.toggle("on", formatOptions.classic.superTiebreak);
         $("optBestOf5").classList.toggle("on", formatOptions.classic.bestOf5);
 
-        /* Американо */
         $("optAutoServe").classList.toggle("on", formatOptions.americano.autoServe);
         $("optStdGolden").classList.toggle("on", formatOptions.americano.goldenPoint);
         $("stdGoldenScoreInput").value = formatOptions.americano.goldenScore;
@@ -2455,6 +2549,7 @@
         tiebreakPoints = [0, 0];
         starPointStage = 0;
         classicServePos = 0;
+        classicSetStartPos = 0;
         serverIndex = 0;
         serveCount = 1;
         history = [];
@@ -2466,7 +2561,6 @@
         showMessage(t("saved"));
     }
 
-    /* Настройки */
     function openSettings() {
         $("teamName0").value = teamNames[0];
         $("teamName1").value = teamNames[1];
@@ -2526,7 +2620,6 @@
         }
     }
 
-    /* Тема */
     function applyTheme() {
         if (currentTheme === "light") {
             document.body.classList.add("light-theme");
@@ -2549,7 +2642,6 @@
         saveState();
     }
 
-    /* Сохранение */
     function saveState() {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -2572,7 +2664,8 @@
                 inTiebreak: inTiebreak,
                 tiebreakPoints: tiebreakPoints,
                 starPointStage: starPointStage,
-                classicServePos: classicServePos
+                classicServePos: classicServePos,
+                classicSetStartPos: classicSetStartPos
             }));
         } catch (e) { console.warn("save error", e); }
     }
@@ -2592,9 +2685,8 @@
             if (typeof s.currentTheme === "string") currentTheme = s.currentTheme;
             if (typeof s.currentLang === "string") currentLang = s.currentLang;
             if (typeof s.matchStartTime === "number") matchStartTime = s.matchStartTime;
-            if (s.currentFormat === "classic" || s.currentFormat === "americano") {
-                currentFormat = s.currentFormat;
-            }
+            if (s.currentFormat === "classic" || s.currentFormat === "americano") currentFormat = s.currentFormat;
+
             if (s.formatOptions) {
                 if (s.formatOptions.classic) {
                     var c = s.formatOptions.classic;
@@ -2610,6 +2702,7 @@
                     if (typeof a.goldenScore === "string") formatOptions.americano.goldenScore = a.goldenScore;
                 }
             }
+
             if (Array.isArray(s.tennisPoints) && s.tennisPoints.length === 2) tennisPoints = s.tennisPoints;
             if (Array.isArray(s.games) && s.games.length === 3) games = s.games;
             if (typeof s.currentSet === "number") currentSet = s.currentSet;
@@ -2618,6 +2711,7 @@
             if (Array.isArray(s.tiebreakPoints) && s.tiebreakPoints.length === 2) tiebreakPoints = s.tiebreakPoints;
             if (typeof s.starPointStage === "number") starPointStage = s.starPointStage;
             if (typeof s.classicServePos === "number") classicServePos = s.classicServePos;
+            if (typeof s.classicSetStartPos === "number") classicSetStartPos = s.classicSetStartPos;
         } catch (e) { console.warn("load error", e); }
     }
 
@@ -2633,9 +2727,7 @@
         $("btnTimerToggle").addEventListener("click", toggleTimer);
         $("btnTimerReset").addEventListener("click", resetTimer);
 
-        $("btnSaveMatchMenu").addEventListener("click", function () {
-            saveCurrentMatch();
-        });
+        $("btnSaveMatchMenu").addEventListener("click", saveCurrentMatch);
 
         $("menuRoster").addEventListener("click", function () { openSheet("sheetRoster"); });
         $("menuMatches").addEventListener("click", function () { openSheet("sheetMatches"); });
@@ -2680,8 +2772,7 @@
         for (var k = 0; k < langOpts.length; k++) {
             (function (opt) {
                 opt.addEventListener("click", function () {
-                    var lang = opt.getAttribute("data-lang");
-                    applyLanguage(lang);
+                    applyLanguage(opt.getAttribute("data-lang"));
                 });
             })(langOpts[k]);
         }
@@ -2689,7 +2780,6 @@
         $("formatClassic").addEventListener("click", function () { setFormat("classic"); });
         $("formatAmericano").addEventListener("click", function () { setFormat("americano"); });
 
-        /* Классика */
         $("classicDeuceSystem").addEventListener("change", function () {
             formatOptions.classic.deuceSystem = this.value;
             saveState();
@@ -2710,7 +2800,6 @@
             saveState();
         });
 
-        /* Американо */
         $("optAutoServe").addEventListener("click", function () {
             this.classList.toggle("on");
             formatOptions.americano.autoServe = this.classList.contains("on");
@@ -2728,6 +2817,8 @@
             formatOptions.americano.goldenScore = this.value.trim() || "10:10";
             saveState();
         });
+
+        $("btnVictoryClose").addEventListener("click", hideVictory);
     }
 
     try {
@@ -2746,6 +2837,7 @@
         localStorage.removeItem("padel_score_v15");
         localStorage.removeItem("padel_score_v16");
         localStorage.removeItem("padel_score_v17");
+        localStorage.removeItem("padel_score_v18");
     } catch (e) {}
 
     bind();
