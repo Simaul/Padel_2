@@ -316,7 +316,12 @@
         color: var(--accent-red);
     }
 
-    /* Убираем промежуток — таймер теперь прижат к кнопкам */
+    /* После победы — таймер остановлен, но цифры зелёные */
+    .timer-bar.finished .timer-display {
+        color: var(--accent-light);
+        opacity: 0.85;
+    }
+
     .controls {
         display: flex;
         gap: 8px;
@@ -348,9 +353,7 @@
     .start-btn { background: var(--btn-green); color: #ffffff; }
     .start-btn:active { background: var(--btn-green-active); }
 
-    /* ============================================================
-       TOAST — всплывающая плашка по центру экрана
-       ============================================================ */
+    /* Toast */
     .toast {
         position: fixed;
         top: 50%;
@@ -411,7 +414,6 @@
         letter-spacing: 1px;
     }
 
-    /* Диалог подтверждения (для сброса таймера) */
     .confirm-text {
         text-align: center;
         font-size: 16px;
@@ -1098,6 +1100,38 @@
         font-variant-numeric: tabular-nums;
     }
 
+    /* Кнопки внизу плашки победы */
+    .victory-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .victory-save-btn {
+        width: 100%;
+        border: none;
+        border-radius: 14px;
+        padding: 16px;
+        font-size: 15px;
+        font-weight: 800;
+        cursor: pointer;
+        background: var(--btn-green);
+        color: #fff;
+        letter-spacing: 1px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Symbol", sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .victory-save-btn:active {
+        transform: scale(0.97);
+        background: var(--btn-green-active);
+    }
+
+    .victory-save-btn .btn-icon { font-size: 18px; }
+
     .victory-button {
         width: 100%;
         border: none;
@@ -1106,15 +1140,15 @@
         font-size: 16px;
         font-weight: 800;
         cursor: pointer;
-        background: var(--btn-green);
-        color: #fff;
+        background: var(--btn-bg);
+        color: var(--text);
         letter-spacing: 1px;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Symbol", sans-serif;
     }
 
     .victory-button:active {
         transform: scale(0.97);
-        background: var(--btn-green-active);
+        background: var(--btn-bg-active);
     }
 
     @media (orientation: landscape) {
@@ -1252,7 +1286,6 @@
     </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <!-- ГЛАВНОЕ МЕНЮ -->
@@ -1544,11 +1577,17 @@
 
         <div class="victory-time" id="victoryTime"></div>
 
-        <button type="button" class="victory-button" id="btnVictoryClose">OK</button>
+        <div class="victory-actions">
+            <button type="button" class="victory-save-btn" id="btnVictorySave">
+                <span class="btn-icon">&#x1F4BE;&#xFE0E;</span>
+                <span id="victorySaveLabel">Save match</span>
+            </button>
+            <button type="button" class="victory-button" id="btnVictoryClose">OK</button>
+        </div>
     </div>
 </div>
 
-<!-- ДИАЛОГ ПОДТВЕРЖДЕНИЯ (для сброса таймера) -->
+<!-- ДИАЛОГ ПОДТВЕРЖДЕНИЯ -->
 <div class="modal-overlay" id="confirmModal">
     <div class="modal" style="max-width: 340px;">
         <div class="confirm-text" id="confirmText">Reset timer?</div>
@@ -1563,7 +1602,7 @@
 (function () {
     "use strict";
 
-    var STORAGE_KEY = "padel_score_v24";
+    var STORAGE_KEY = "padel_score_v25";
     var MATCHES_KEY = "padel_matches_v1";
 
     var TRANSLATIONS = {
@@ -1907,6 +1946,7 @@
 
         if (checkAmericanoWin(team)) {
             matchOver = true;
+            finishMatch();
             showVictory(team);
             return;
         }
@@ -2026,6 +2066,7 @@
 
         if (setsWon >= needed) {
             matchOver = true;
+            finishMatch();
             showVictory(team);
             return;
         }
@@ -2042,8 +2083,23 @@
             showToast(t("setWon"));
         } else {
             matchOver = true;
+            finishMatch();
             showVictory(team);
         }
+    }
+
+    /* Останавливает таймер без красного цвета (для случая победы) */
+    function finishMatch() {
+        if (timerRunning) {
+            timerRunning = false;
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+        /* Убираем класс paused (если был) и НЕ добавляем его — цифры остаются зелёными */
+        $("timerBar").classList.remove("paused");
+        $("timerBar").classList.add("finished");
     }
 
     function tennisPointText(value, opponent) {
@@ -2083,6 +2139,10 @@
         starPointStage = prev.starPointStage;
         classicServePos = prev.classicServePos;
         classicSetStartPos = prev.classicSetStartPos;
+        /* Если откатили победу — снимаем finished */
+        if (!matchOver) {
+            $("timerBar").classList.remove("finished");
+        }
         update();
         saveState();
     }
@@ -2117,6 +2177,7 @@
             pauseTimer();
             timerSeconds = 0;
             renderTimer();
+            $("timerBar").classList.remove("finished");
             updateResetButton();
             update();
             saveState();
@@ -2145,6 +2206,14 @@
         return 0;
     }
 
+    /* Для финального времени после победы — берём уже накопленные секунды таймера */
+    function getFinalDuration() {
+        if (timerStartTime !== null && timerSeconds > 0) {
+            return timerSeconds;
+        }
+        return getMatchDuration();
+    }
+
     function showVictory(team) {
         var winnerName = teamNames[team];
 
@@ -2153,6 +2222,7 @@
         $("victoryCongrats").textContent = t("victoryCongrats");
         $("victoryStatsTitle").textContent = t("victoryStatsTitle");
         $("btnVictoryClose").textContent = t("ok");
+        $("victorySaveLabel").textContent = t("saveMatch");
 
         var setsHtml = "";
 
@@ -2184,7 +2254,7 @@
         playersHtml += '</div>';
         $("victoryPlayers").innerHTML = playersHtml;
 
-        var dur = getMatchDuration();
+        var dur = getFinalDuration();
         var mins = Math.floor(dur / 60);
         var secs = dur % 60;
         $("victoryTime").textContent = t("victoryTime") + ': ' + mins + ':' + pad2(secs);
@@ -2194,6 +2264,12 @@
 
     function hideVictory() {
         $("victoryOverlay").classList.remove("open");
+    }
+
+    /* Сохранение матча из плашки победы: сохранить → toast → закрыть */
+    function saveAndCloseVictory() {
+        saveCurrentMatch(true);
+        hideVictory();
     }
 
     function pad2(n) { return n < 10 ? "0" + n : "" + n; }
@@ -2231,7 +2307,7 @@
         } catch (e) { console.warn("save matches error", e); }
     }
 
-    function saveCurrentMatch() {
+    function saveCurrentMatch(fromVictory) {
         var hasScore = false;
         if (currentFormat === "classic") {
             hasScore = games.some(function (s) { return s[0] > 0 || s[1] > 0; }) ||
@@ -2247,7 +2323,7 @@
 
         var now = Date.now();
         var start = matchStartTime || now;
-        var duration = getMatchDuration();
+        var duration = matchOver ? getFinalDuration() : getMatchDuration();
 
         var match = {
             id: now,
@@ -2568,6 +2644,8 @@
         $("btnConfirmCancel").textContent = t("cancel");
         $("btnConfirmOk").textContent = t("ok");
 
+        $("victorySaveLabel").textContent = t("saveMatch");
+
         var doneButtons = document.querySelectorAll(".btn-close-sheet");
         for (var i = 0; i < doneButtons.length; i++) {
             doneButtons[i].textContent = t("done");
@@ -2607,9 +2685,6 @@
         $("p4").value = players[3];
     }
 
-    /* ============================================================
-       TOAST — всплывающее уведомление по центру
-       ============================================================ */
     function showToast(text) {
         var toast = $("toast");
         toast.textContent = text;
@@ -2638,6 +2713,7 @@
             timerStartTime = Date.now() - timerSeconds * 1000;
         }
         $("timerBar").classList.remove("paused");
+        $("timerBar").classList.remove("finished");
         timerInterval = setInterval(function () {
             timerSeconds++;
             renderTimer();
@@ -2653,15 +2729,16 @@
     }
 
     function toggleTimer() {
+        if (matchOver) return;   /* После победы таймер не трогаем */
         if (timerRunning) pauseTimer();
         else startTimer();
     }
 
-    /* Сброс таймера в 00:00 + пауза + красный */
     function resetTimer() {
         pauseTimer();
         timerSeconds = 0;
         timerStartTime = null;
+        $("timerBar").classList.remove("finished");
         renderTimer();
     }
 
@@ -2743,6 +2820,7 @@
         pauseTimer();
         timerSeconds = 0;
         renderTimer();
+        $("timerBar").classList.remove("finished");
         updateResetButton();
 
         applyFormatUI();
@@ -2910,12 +2988,15 @@
             if (typeof s.starPointStage === "number") starPointStage = s.starPointStage;
             if (typeof s.classicServePos === "number") classicServePos = s.classicServePos;
             if (typeof s.classicSetStartPos === "number") classicSetStartPos = s.classicSetStartPos;
+
+            /* Если матч был завершён — показываем таймер с финальным временем (зелёным) */
+            if (matchOver) {
+                $("timerBar").classList.add("finished");
+            }
         } catch (e) { console.warn("load error", e); }
     }
 
-    /* ============================================================
-       СВАЙП ПО ТАЙМЕРУ
-       ============================================================ */
+    /* Свайп по таймеру */
     var touchStartX = 0;
     var touchStartY = 0;
     var swipeHandled = false;
@@ -2938,7 +3019,6 @@
             var dx = endX - touchStartX;
             var dy = endY - touchStartY;
 
-            /* Свайп влево: dx < -50 и вертикальное отклонение небольшое */
             if (dx < -50 && Math.abs(dy) < 60) {
                 swipeHandled = true;
                 openConfirmReset();
@@ -2946,7 +3026,6 @@
         }, { passive: true });
     }
 
-    /* Диалог подтверждения сброса таймера */
     function openConfirmReset() {
         $("confirmModal").classList.add("open");
     }
@@ -2971,8 +3050,6 @@
         $("btnSettings").addEventListener("click", openSettings);
 
         $("timerBar").addEventListener("click", function () {
-            /* Обычный тап — пауза/продолжить.
-               Если был свайп — флаг swipeHandled = true, тап игнорируется. */
             if (swipeHandled) {
                 swipeHandled = false;
                 return;
@@ -2980,7 +3057,7 @@
             toggleTimer();
         });
 
-        $("btnSaveMatchMenu").addEventListener("click", saveCurrentMatch);
+        $("btnSaveMatchMenu").addEventListener("click", function () { saveCurrentMatch(false); });
 
         $("menuRoster").addEventListener("click", function () { openSheet("sheetRoster"); });
         $("menuMatches").addEventListener("click", function () { openSheet("sheetMatches"); });
@@ -3100,15 +3177,14 @@
         });
 
         $("btnVictoryClose").addEventListener("click", hideVictory);
+        $("btnVictorySave").addEventListener("click", saveAndCloseVictory);
 
-        /* Подтверждение сброса таймера */
         $("btnConfirmCancel").addEventListener("click", closeConfirmReset);
         $("btnConfirmOk").addEventListener("click", confirmResetTimer);
         $("confirmModal").addEventListener("click", function (e) {
             if (e.target === this) closeConfirmReset();
         });
 
-        /* Свайп по таймеру */
         bindTimerSwipe();
     }
 
@@ -3134,6 +3210,7 @@
         localStorage.removeItem("padel_score_v21");
         localStorage.removeItem("padel_score_v22");
         localStorage.removeItem("padel_score_v23");
+        localStorage.removeItem("padel_score_v24");
     } catch (e) {}
 
     bind();
