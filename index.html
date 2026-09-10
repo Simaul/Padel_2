@@ -39,6 +39,9 @@
         --sets-bar-border: #333a41;
         --preset-bg: #2e343a;
         --preset-bg-active: #4a7c59;
+        --toast-bg: #2e343a;
+        --toast-border: #4a7c59;
+        --toast-text: #a8d5be;
     }
 
     body.light-theme {
@@ -74,6 +77,9 @@
         --sets-bar-border: #e0dcd2;
         --preset-bg: #e8e4dc;
         --preset-bg-active: #4a7c59;
+        --toast-bg: #ffffff;
+        --toast-border: #4a7c59;
+        --toast-text: #3d6849;
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -290,6 +296,7 @@
         transition: transform 0.05s, border-color 0.2s;
         -webkit-user-select: none;
         user-select: none;
+        touch-action: pan-y;
     }
 
     .timer-bar.visible { display: flex; }
@@ -309,10 +316,11 @@
         color: var(--accent-red);
     }
 
+    /* Убираем промежуток — таймер теперь прижат к кнопкам */
     .controls {
         display: flex;
         gap: 8px;
-        margin-top: 14px;
+        margin-top: 10px;
     }
 
     .control-button {
@@ -334,22 +342,41 @@
         background: var(--btn-bg-active);
     }
 
-    /* Новая игра (после старта) — красная */
     .reset { background: var(--btn-red); color: #ffffff; }
     .reset:active { background: var(--btn-red-active); }
 
-    /* Старт (до старта) — зелёная */
     .start-btn { background: var(--btn-green); color: #ffffff; }
     .start-btn:active { background: var(--btn-green-active); }
 
-    .message {
-        text-align: center;
-        min-height: 22px;
-        margin-top: 10px;
-        font-weight: 700;
-        font-size: 15px;
-        color: var(--accent-light);
+    /* ============================================================
+       TOAST — всплывающая плашка по центру экрана
+       ============================================================ */
+    .toast {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.8);
+        background: var(--toast-bg);
+        border: 2px solid var(--toast-border);
+        border-radius: 14px;
+        padding: 14px 24px;
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--toast-text);
         letter-spacing: 0.5px;
+        text-align: center;
+        z-index: 500;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.25s ease, transform 0.25s ease;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        max-width: 80vw;
+        word-break: break-word;
+    }
+
+    .toast.visible {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
     }
 
     .modal-overlay {
@@ -382,6 +409,39 @@
         text-align: center;
         color: var(--accent-light);
         letter-spacing: 1px;
+    }
+
+    /* Диалог подтверждения (для сброса таймера) */
+    .confirm-text {
+        text-align: center;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text);
+        margin: 8px 0 22px;
+        line-height: 1.4;
+    }
+
+    .confirm-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .confirm-buttons button {
+        flex: 1;
+        border: none;
+        border-radius: 12px;
+        padding: 14px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        background: var(--btn-bg);
+        color: var(--text);
+        font-family: inherit;
+    }
+
+    .confirm-buttons .danger {
+        background: var(--btn-red);
+        color: #ffffff;
     }
 
     .save-match-btn {
@@ -1105,25 +1165,17 @@
         }
 
         .timer-bar {
-            margin-top: 8px;
+            margin-top: 6px;
             padding: 6px 12px;
         }
 
         .timer-display { font-size: 24px; letter-spacing: 1px; }
 
-        .controls { margin-top: 8px; }
+        .controls { margin-top: 6px; }
 
         .control-button {
             padding: 12px 6px;
             font-size: 20px;
-        }
-
-        .message {
-            min-height: 0;
-            height: 0;
-            margin: 0;
-            font-size: 0;
-            overflow: hidden;
         }
 
         .victory-trophy { font-size: 48px; }
@@ -1192,8 +1244,6 @@
         <div class="timer-display" id="timerDisplay">00:00</div>
     </div>
 
-    <div class="message" id="message"></div>
-
     <div class="controls">
         <button type="button" class="control-button hidden" id="btnSwitch" title="Switch serve">S</button>
         <button type="button" class="control-button" id="btnUndo" title="Undo">&#x21B6;&#xFE0E;</button>
@@ -1201,6 +1251,9 @@
         <button type="button" class="control-button start-btn" id="btnReset" title="Start">&#x25B6;&#xFE0E;</button>
     </div>
 </div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <!-- ГЛАВНОЕ МЕНЮ -->
 <div class="modal-overlay" id="settingsModal">
@@ -1267,7 +1320,7 @@
     </div>
 </div>
 
-<!-- ШТОРКА: СОСТАВ (с заголовком) -->
+<!-- ШТОРКА: СОСТАВ -->
 <div class="sheet-overlay" id="sheetRoster">
     <div class="sheet">
         <h2 id="sheetRosterTitle">Roster</h2>
@@ -1495,11 +1548,22 @@
     </div>
 </div>
 
+<!-- ДИАЛОГ ПОДТВЕРЖДЕНИЯ (для сброса таймера) -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal" style="max-width: 340px;">
+        <div class="confirm-text" id="confirmText">Reset timer?</div>
+        <div class="confirm-buttons">
+            <button type="button" id="btnConfirmCancel">Cancel</button>
+            <button type="button" class="danger" id="btnConfirmOk">OK</button>
+        </div>
+    </div>
+</div>
+
 <script>
 (function () {
     "use strict";
 
-    var STORAGE_KEY = "padel_score_v23";
+    var STORAGE_KEY = "padel_score_v24";
     var MATCHES_KEY = "padel_matches_v1";
 
     var TRANSLATIONS = {
@@ -1509,7 +1573,7 @@
             saveMatch: "Save match",
             menuRoster: "Roster", menuMatches: "Matches", menuLanguage: "Language",
             menuFormat: "Format", menuInterface: "Interface", menuTheme: "Theme",
-            close: "Close", done: "Done", ok: "OK",
+            close: "Close", done: "Done", ok: "OK", cancel: "Cancel",
             rosterGroup: "Team", teamNameLabel: "Team name", playerLabel: "Player",
             teamNameDefault: "Team", playerDefault: "Player", serveWord: "serve",
             sheetRosterTitle: "Roster",
@@ -1546,6 +1610,7 @@
             newGameConfirm: "Start a new game?",
             deleteMatchConfirm: "Delete this match?",
             clearAllConfirm: "Delete all saved matches?",
+            resetTimerConfirm: "Reset timer?",
             setWord: "Set", gameWord: "Game",
             matchWon: "Match won!", setWon: "Set won!",
             tiebreak: "Tie-break!", starPoint: "Star Point!", goldenPoint: "Golden Point!",
@@ -1564,7 +1629,7 @@
             saveMatch: "Guardar partido",
             menuRoster: "Alineación", menuMatches: "Partidos", menuLanguage: "Idioma",
             menuFormat: "Formato", menuInterface: "Interfaz", menuTheme: "Tema",
-            close: "Cerrar", done: "Listo", ok: "OK",
+            close: "Cerrar", done: "Listo", ok: "OK", cancel: "Cancelar",
             rosterGroup: "Equipo", teamNameLabel: "Nombre del equipo", playerLabel: "Jugador",
             teamNameDefault: "Equipo", playerDefault: "Jugador", serveWord: "saque",
             sheetRosterTitle: "Alineación",
@@ -1601,6 +1666,7 @@
             newGameConfirm: "¿Empezar un nuevo partido?",
             deleteMatchConfirm: "¿Borrar este partido?",
             clearAllConfirm: "¿Borrar todos los partidos guardados?",
+            resetTimerConfirm: "¿Reiniciar cronómetro?",
             setWord: "Set", gameWord: "Juego",
             matchWon: "¡Partido ganado!", setWon: "¡Set ganado!",
             tiebreak: "¡Tie-break!", starPoint: "¡Star Point!", goldenPoint: "¡Punto Dorado!",
@@ -1619,7 +1685,7 @@
             saveMatch: "Сохранить матч",
             menuRoster: "Состав", menuMatches: "Матчи", menuLanguage: "Язык",
             menuFormat: "Формат", menuInterface: "Интерфейс", menuTheme: "Тема",
-            close: "Закрыть", done: "Готово", ok: "ОК",
+            close: "Закрыть", done: "Готово", ok: "ОК", cancel: "Отмена",
             rosterGroup: "Команда", teamNameLabel: "Название команды", playerLabel: "Игрок",
             teamNameDefault: "Команда", playerDefault: "Игрок", serveWord: "подача",
             sheetRosterTitle: "Состав",
@@ -1657,6 +1723,7 @@
             newGameConfirm: "Начать новую игру?",
             deleteMatchConfirm: "Удалить этот матч?",
             clearAllConfirm: "Удалить все сохранённые матчи?",
+            resetTimerConfirm: "Сбросить таймер?",
             setWord: "Сет", gameWord: "Гейм",
             matchWon: "Матч выигран!", setWon: "Сет выигран!",
             tiebreak: "Тай-брейк!", starPoint: "Star Point!", goldenPoint: "Золотое очко!",
@@ -1675,7 +1742,7 @@
             saveMatch: "Зберегти матч",
             menuRoster: "Склад", menuMatches: "Матчі", menuLanguage: "Мова",
             menuFormat: "Формат", menuInterface: "Інтерфейс", menuTheme: "Тема",
-            close: "Закрити", done: "Готово", ok: "ОК",
+            close: "Закрити", done: "Готово", ok: "ОК", cancel: "Скасувати",
             rosterGroup: "Команда", teamNameLabel: "Назва команди", playerLabel: "Гравець",
             teamNameDefault: "Команда", playerDefault: "Гравець", serveWord: "подача",
             sheetRosterTitle: "Склад",
@@ -1713,6 +1780,7 @@
             newGameConfirm: "Почати нову гру?",
             deleteMatchConfirm: "Видалити цей матч?",
             clearAllConfirm: "Видалити всі збережені матчі?",
+            resetTimerConfirm: "Скинути таймер?",
             setWord: "Сет", gameWord: "Гейм",
             matchWon: "Матч виграно!", setWon: "Сет виграно!",
             tiebreak: "Тай-брейк!", starPoint: "Star Point!", goldenPoint: "Золоте очко!",
@@ -1739,7 +1807,6 @@
     var currentLang = "en";
     var matchStartTime = null;
     var timerStartTime = null;
-    /* Игра началась? (для переключения кнопки Старт ↔ Новая игра) */
     var gameStarted = false;
 
     var currentFormat = "americano";
@@ -1776,6 +1843,8 @@
     var timerInterval = null;
     var timerRunning = false;
 
+    var toastTimeout = null;
+
     var order = [0, 2, 1, 3];
     var romanNumerals = ["", "Ⅰ", "Ⅱ"];
 
@@ -1809,10 +1878,9 @@
 
     function addPoint(team) {
         if (matchOver) {
-            showMessage(t("matchWon"));
+            showToast(t("matchWon"));
             return;
         }
-        /* Автозапуск: если ещё не стартовали — стартуем сейчас */
         if (!gameStarted) {
             gameStarted = true;
             if (timerStartTime === null) {
@@ -1834,7 +1902,6 @@
         saveState();
     }
 
-    /* БЫСТРЫЙ (бывш. Американо) */
     function addPointAmericano(team) {
         points[team]++;
 
@@ -1861,14 +1928,10 @@
         var winByTwo = formatOptions.americano.winByTwo;
 
         if (p < target) return false;
-
-        if (winByTwo) {
-            return (p - o) >= 2;
-        }
+        if (winByTwo) return (p - o) >= 2;
         return true;
     }
 
-    /* КЛАССИЧЕСКИЙ */
     function addPointClassic(team) {
         var opp = team === 0 ? 1 : 0;
 
@@ -1912,7 +1975,7 @@
             tennisPoints[opp] = 3;
             if (deuceSystem === "star") {
                 starPointStage++;
-                if (starPointStage >= 3) showMessage(t("starPoint"));
+                if (starPointStage >= 3) showToast(t("starPoint"));
             }
             return;
         }
@@ -1945,7 +2008,7 @@
             if (formatOptions.classic.tiebreak7 || isSuperTiebreak()) {
                 inTiebreak = true;
                 tiebreakPoints = [0, 0];
-                showMessage(t("tiebreak"));
+                showToast(t("tiebreak"));
             }
         }
 
@@ -1976,7 +2039,7 @@
             classicSetStartPos = (currentSet % 2 === 0) ? 0 : 2;
             classicServePos = classicSetStartPos;
             serverIndex = classicServeOrder[classicServePos];
-            showMessage(t("setWon"));
+            showToast(t("setWon"));
         } else {
             matchOver = true;
             showVictory(team);
@@ -2004,7 +2067,7 @@
 
     function undo() {
         if (history.length === 0) {
-            showMessage(t("nothingToUndo"));
+            showToast(t("nothingToUndo"));
             return;
         }
         var prev = history.pop();
@@ -2024,19 +2087,16 @@
         saveState();
     }
 
-    /* Кнопка внизу: работает как Старт или как Новая игра */
     function resetOrStart() {
         if (!gameStarted) {
-            /* Старт */
             gameStarted = true;
             if (timerStartTime === null) {
                 timerStartTime = Date.now();
             }
             startTimer();
             updateResetButton();
-            showMessage(t("startMsg"));
+            showToast(t("startMsg"));
         } else {
-            /* Новая игра */
             if (!confirm(t("newGameConfirm"))) return;
             points = [0, 0];
             serverIndex = 0;
@@ -2060,22 +2120,21 @@
             updateResetButton();
             update();
             saveState();
-            showMessage(t("newGame"));
+            showToast(t("newGame"));
         }
     }
 
-    /* Обновить внешний вид кнопки (Старт/Новая игра) */
     function updateResetButton() {
         var btn = $("btnReset");
         if (gameStarted) {
             btn.classList.remove("start-btn");
             btn.classList.add("reset");
-            btn.innerHTML = "&#x21BB;&#xFE0E;";   /* ↻ */
+            btn.innerHTML = "&#x21BB;&#xFE0E;";
             btn.setAttribute("title", t("newGame"));
         } else {
             btn.classList.remove("reset");
             btn.classList.add("start-btn");
-            btn.innerHTML = "&#x25B6;&#xFE0E;";   /* ▶ */
+            btn.innerHTML = "&#x25B6;&#xFE0E;";
             btn.setAttribute("title", "Start");
         }
     }
@@ -2182,7 +2241,7 @@
         }
 
         if (!hasScore) {
-            showMessage(t("nothingToSave"));
+            showToast(t("nothingToSave"));
             return;
         }
 
@@ -2227,7 +2286,7 @@
 
         renderMatchesList();
         updateMatchesCount();
-        showMessage(t("matchSaved"));
+        showToast(t("matchSaved"));
     }
 
     function deleteMatch(id) {
@@ -2243,7 +2302,7 @@
         saveMatches([]);
         renderMatchesList();
         updateMatchesCount();
-        showMessage(t("allMatchesDeleted"));
+        showToast(t("allMatchesDeleted"));
     }
 
     function renderMatchesList() {
@@ -2505,6 +2564,10 @@
 
         $("btnClearMatches").textContent = t("clearAll");
 
+        $("confirmText").textContent = t("resetTimerConfirm");
+        $("btnConfirmCancel").textContent = t("cancel");
+        $("btnConfirmOk").textContent = t("ok");
+
         var doneButtons = document.querySelectorAll(".btn-close-sheet");
         for (var i = 0; i < doneButtons.length; i++) {
             doneButtons[i].textContent = t("done");
@@ -2514,9 +2577,7 @@
             $("setChipLabel" + s).textContent = t("setWord") + " " + (s + 1);
         }
 
-        /* Обновить title кнопки Старт/Новая */
         updateResetButton();
-
         renderMatchesList();
     }
 
@@ -2546,11 +2607,17 @@
         $("p4").value = players[3];
     }
 
-    function showMessage(text) {
-        var el = $("message");
-        el.textContent = text;
-        setTimeout(function () {
-            if (el.textContent === text) el.textContent = "";
+    /* ============================================================
+       TOAST — всплывающее уведомление по центру
+       ============================================================ */
+    function showToast(text) {
+        var toast = $("toast");
+        toast.textContent = text;
+        toast.classList.add("visible");
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(function () {
+            toast.classList.remove("visible");
+            toastTimeout = null;
         }, 2000);
     }
 
@@ -2588,6 +2655,14 @@
     function toggleTimer() {
         if (timerRunning) pauseTimer();
         else startTimer();
+    }
+
+    /* Сброс таймера в 00:00 + пауза + красный */
+    function resetTimer() {
+        pauseTimer();
+        timerSeconds = 0;
+        timerStartTime = null;
+        renderTimer();
     }
 
     function applyLanguage(lang) {
@@ -2673,7 +2748,7 @@
         applyFormatUI();
         update();
         saveState();
-        showMessage(t("saved"));
+        showToast(t("saved"));
     }
 
     function openSettings() {
@@ -2838,6 +2913,54 @@
         } catch (e) { console.warn("load error", e); }
     }
 
+    /* ============================================================
+       СВАЙП ПО ТАЙМЕРУ
+       ============================================================ */
+    var touchStartX = 0;
+    var touchStartY = 0;
+    var swipeHandled = false;
+
+    function bindTimerSwipe() {
+        var bar = $("timerBar");
+
+        bar.addEventListener("touchstart", function (e) {
+            if (e.touches.length !== 1) return;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            swipeHandled = false;
+        }, { passive: true });
+
+        bar.addEventListener("touchend", function (e) {
+            if (swipeHandled) return;
+            if (!e.changedTouches || e.changedTouches.length === 0) return;
+            var endX = e.changedTouches[0].clientX;
+            var endY = e.changedTouches[0].clientY;
+            var dx = endX - touchStartX;
+            var dy = endY - touchStartY;
+
+            /* Свайп влево: dx < -50 и вертикальное отклонение небольшое */
+            if (dx < -50 && Math.abs(dy) < 60) {
+                swipeHandled = true;
+                openConfirmReset();
+            }
+        }, { passive: true });
+    }
+
+    /* Диалог подтверждения сброса таймера */
+    function openConfirmReset() {
+        $("confirmModal").classList.add("open");
+    }
+
+    function closeConfirmReset() {
+        $("confirmModal").classList.remove("open");
+    }
+
+    function confirmResetTimer() {
+        closeConfirmReset();
+        resetTimer();
+        showToast(t("saved"));
+    }
+
     function bind() {
         $("card0").addEventListener("click", function () { addPoint(0); });
         $("card1").addEventListener("click", function () { addPoint(1); });
@@ -2847,7 +2970,15 @@
         $("btnReset").addEventListener("click", resetOrStart);
         $("btnSettings").addEventListener("click", openSettings);
 
-        $("timerBar").addEventListener("click", toggleTimer);
+        $("timerBar").addEventListener("click", function () {
+            /* Обычный тап — пауза/продолжить.
+               Если был свайп — флаг swipeHandled = true, тап игнорируется. */
+            if (swipeHandled) {
+                swipeHandled = false;
+                return;
+            }
+            toggleTimer();
+        });
 
         $("btnSaveMatchMenu").addEventListener("click", saveCurrentMatch);
 
@@ -2969,6 +3100,16 @@
         });
 
         $("btnVictoryClose").addEventListener("click", hideVictory);
+
+        /* Подтверждение сброса таймера */
+        $("btnConfirmCancel").addEventListener("click", closeConfirmReset);
+        $("btnConfirmOk").addEventListener("click", confirmResetTimer);
+        $("confirmModal").addEventListener("click", function (e) {
+            if (e.target === this) closeConfirmReset();
+        });
+
+        /* Свайп по таймеру */
+        bindTimerSwipe();
     }
 
     try {
@@ -2992,6 +3133,7 @@
         localStorage.removeItem("padel_score_v20");
         localStorage.removeItem("padel_score_v21");
         localStorage.removeItem("padel_score_v22");
+        localStorage.removeItem("padel_score_v23");
     } catch (e) {}
 
     bind();
