@@ -37,6 +37,8 @@
         --group-border: #3a424a;
         --sets-bar-bg: #262b30;
         --sets-bar-border: #333a41;
+        --preset-bg: #2e343a;
+        --preset-bg-active: #4a7c59;
     }
 
     body.light-theme {
@@ -70,6 +72,8 @@
         --group-border: #e0dcd2;
         --sets-bar-bg: #ffffff;
         --sets-bar-border: #e0dcd2;
+        --preset-bg: #e8e4dc;
+        --preset-bg-active: #4a7c59;
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -273,9 +277,6 @@
         font-size: 15px;
     }
 
-    /* ============================================================
-       ТАЙМЕР — только цифры, тап = пауза/продолжить
-       ============================================================ */
     .timer-bar {
         display: none;
         align-items: center;
@@ -292,7 +293,6 @@
     }
 
     .timer-bar.visible { display: flex; }
-
     .timer-bar:active { transform: scale(0.98); }
 
     .timer-display {
@@ -305,7 +305,6 @@
         transition: color 0.2s;
     }
 
-    /* Когда таймер на паузе — красный */
     .timer-bar.paused .timer-display {
         color: var(--accent-red);
     }
@@ -501,6 +500,38 @@
 
     .field input:focus,
     .field select:focus { border-color: var(--accent); }
+
+    /* Пресеты очков */
+    .preset-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .preset-btn {
+        flex: 1;
+        border: 2px solid var(--modal-border);
+        background: var(--preset-bg);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 12px 6px;
+        font-size: 16px;
+        font-weight: 800;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .preset-btn:active {
+        transform: scale(0.97);
+    }
+
+    .preset-btn.active {
+        background: var(--preset-bg-active);
+        border-color: var(--preset-bg-active);
+        color: #ffffff;
+    }
 
     .toggle-row {
         display: flex;
@@ -836,7 +867,6 @@
     .match-action-row button.danger { background: var(--btn-red); }
     .match-action-row button:active { transform: scale(0.97); opacity: 0.9; }
 
-    /* ПЛАШКА ПОБЕДЫ */
     .victory-overlay {
         position: fixed;
         top: 0; right: 0; bottom: 0; left: 0;
@@ -927,6 +957,16 @@
         font-weight: 800;
         text-align: center;
         margin-bottom: 10px;
+    }
+
+    .victory-final-score {
+        font-size: 32px;
+        font-weight: 900;
+        color: var(--accent-gold);
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+        margin: 8px 0 12px;
+        letter-spacing: 2px;
     }
 
     .victory-set-row {
@@ -1087,6 +1127,7 @@
         .victory-trophy { font-size: 48px; }
         .victory-title { font-size: 18px; }
         .victory-winner { font-size: 22px; }
+        .victory-final-score { font-size: 26px; }
     }
 
     @media (orientation: landscape) and (max-height: 400px) {
@@ -1145,7 +1186,6 @@
         </div>
     </div>
 
-    <!-- ТАЙМЕР: только цифры, тап = пауза/продолжить -->
     <div class="timer-bar" id="timerBar">
         <div class="timer-display" id="timerDisplay">00:00</div>
     </div>
@@ -1313,6 +1353,25 @@
 
         <div class="format-options-group" id="optionsAmericano" style="display:none;">
             <h3 id="optionsAmericanoTitle">Americano options</h3>
+
+            <!-- До скольки очков -->
+            <div class="field">
+                <label id="stdTargetLabel">Play to</label>
+                <div class="preset-row" id="stdPresetRow">
+                    <button type="button" class="preset-btn" data-preset="16">16</button>
+                    <button type="button" class="preset-btn" data-preset="21">21</button>
+                    <button type="button" class="preset-btn" data-preset="24">24</button>
+                    <button type="button" class="preset-btn" data-preset="32">32</button>
+                </div>
+                <input id="stdTargetInput" type="number" min="1" max="999" placeholder="16">
+            </div>
+
+            <!-- Разница 2 -->
+            <div class="toggle-row">
+                <span id="optWinByTwoLabel">Win by 2 (after target)</span>
+                <div class="toggle" id="optWinByTwo"></div>
+            </div>
+
             <div class="toggle-row">
                 <span id="optAutoServeLabel">Auto serve rotation</span>
                 <div class="toggle" id="optAutoServe"></div>
@@ -1438,7 +1497,7 @@
 (function () {
     "use strict";
 
-    var STORAGE_KEY = "padel_score_v21";
+    var STORAGE_KEY = "padel_score_v22";
     var MATCHES_KEY = "padel_matches_v1";
 
     var TRANSLATIONS = {
@@ -1470,6 +1529,8 @@
             optAutoServe: "Auto serve rotation",
             optStdGolden: "Golden point",
             stdGoldenScoreLabel: "Golden point at score (e.g. 10:10)",
+            stdTargetLabel: "Play to",
+            optWinByTwo: "Win by 2 (after target)",
             toggleTimer: "Show timer", toggleSwitch: "Show serve switch button",
             themeDark: "Dark", themeLight: "Light",
             clearAll: "Clear all",
@@ -1521,6 +1582,8 @@
             optAutoServe: "Rotación automática de saque",
             optStdGolden: "Punto dorado",
             stdGoldenScoreLabel: "Punto dorado al marcador (ej. 10:10)",
+            stdTargetLabel: "Jugar hasta",
+            optWinByTwo: "Ganar por 2 (después del objetivo)",
             toggleTimer: "Mostrar cronómetro", toggleSwitch: "Mostrar botón de cambio de saque",
             themeDark: "Oscuro", themeLight: "Claro",
             clearAll: "Borrar todo",
@@ -1572,6 +1635,8 @@
             optAutoServe: "Автопереход подачи",
             optStdGolden: "Золотое очко",
             stdGoldenScoreLabel: "Золотое очко при счёте (напр. 10:10)",
+            stdTargetLabel: "Играем до",
+            optWinByTwo: "Победа с разницей 2 (после порога)",
             toggleTimer: "Показывать таймер",
             toggleSwitch: "Показывать кнопку смены подачи",
             themeDark: "Тёмная", themeLight: "Светлая",
@@ -1624,6 +1689,8 @@
             optAutoServe: "Автоперехід подачі",
             optStdGolden: "Золоте очко",
             stdGoldenScoreLabel: "Золоте очко при рахунку (напр. 10:10)",
+            stdTargetLabel: "Граємо до",
+            optWinByTwo: "Перемога з різницею 2 (після порогу)",
             toggleTimer: "Показувати таймер",
             toggleSwitch: "Показувати кнопку зміни подачі",
             themeDark: "Темна", themeLight: "Світла",
@@ -1661,7 +1728,7 @@
     var currentTheme = "dark";
     var currentLang = "en";
     var matchStartTime = null;
-    var timerStartTime = null;   /* момент, когда таймер впервые стартовал */
+    var timerStartTime = null;
 
     var currentFormat = "americano";
 
@@ -1675,7 +1742,9 @@
         americano: {
             autoServe: true,
             goldenPoint: false,
-            goldenScore: "10:10"
+            goldenScore: "10:10",
+            target: 16,
+            winByTwo: true
         }
     };
 
@@ -1744,8 +1813,16 @@
         saveState();
     }
 
+    /* АМЕРИКАНО */
     function addPointAmericano(team) {
         points[team]++;
+
+        /* Проверяем победу */
+        if (checkAmericanoWin(team)) {
+            matchOver = true;
+            showVictory(team);
+            return;
+        }
 
         if (formatOptions.americano.autoServe) {
             if (serveCount === 1) {
@@ -1757,6 +1834,23 @@
         }
     }
 
+    function checkAmericanoWin(team) {
+        var p = points[team];
+        var o = points[1 - team];
+        var target = formatOptions.americano.target;
+        var winByTwo = formatOptions.americano.winByTwo;
+
+        if (p < target) return false;
+
+        if (winByTwo) {
+            return (p - o) >= 2;
+        } else {
+            /* Кто первый достиг target — победил */
+            return true;
+        }
+    }
+
+    /* КЛАССИЧЕСКИЙ */
     function addPointClassic(team) {
         var opp = team === 0 ? 1 : 0;
 
@@ -1794,30 +1888,20 @@
             return;
         }
 
-        if (p === 4) {
-            winGame(team);
-            return;
-        }
+        if (p === 4) { winGame(team); return; }
 
         if (o === 4) {
             tennisPoints[opp] = 3;
             if (deuceSystem === "star") {
                 starPointStage++;
-                if (starPointStage >= 3) {
-                    showMessage(t("starPoint"));
-                }
+                if (starPointStage >= 3) showMessage(t("starPoint"));
             }
             return;
         }
 
-        if (p === 3 && o < 3) {
-            winGame(team);
-            return;
-        }
+        if (p === 3 && o < 3) { winGame(team); return; }
 
-        if (p < 3) {
-            tennisPoints[team]++;
-        }
+        if (p < 3) tennisPoints[team]++;
     }
 
     function isSuperTiebreak() {
@@ -1871,11 +1955,9 @@
             tiebreakPoints = [0, 0];
             inTiebreak = false;
             starPointStage = 0;
-
             classicSetStartPos = (currentSet % 2 === 0) ? 0 : 2;
             classicServePos = classicSetStartPos;
             serverIndex = classicServeOrder[classicServePos];
-
             showMessage(t("setWon"));
         } else {
             matchOver = true;
@@ -1941,7 +2023,6 @@
         starPointStage = 0;
         classicServePos = 0;
         classicSetStartPos = 0;
-        /* Сбрасываем таймер */
         pauseTimer();
         timerSeconds = 0;
         renderTimer();
@@ -1950,25 +2031,13 @@
         showMessage(t("newGame"));
     }
 
-    /* ============================================================
-       ПОЛУЧИТЬ ВРЕМЯ МАТЧА ДЛЯ СОХРАНЕНИЯ (в секундах)
-       ============================================================
-       Если таймер использовался (timerStartTime !== null) —
-       берём от старта таймера. Иначе — от первого очка.
-       ============================================================ */
     function getMatchDuration() {
-        if (timerStartTime !== null) {
-            return Math.floor((Date.now() - timerStartTime) / 1000);
-        }
-        if (matchStartTime !== null) {
-            return Math.floor((Date.now() - matchStartTime) / 1000);
-        }
+        if (timerStartTime !== null) return Math.floor((Date.now() - timerStartTime) / 1000);
+        if (matchStartTime !== null) return Math.floor((Date.now() - matchStartTime) / 1000);
         return 0;
     }
 
-    /* ============================================================
-       ПЛАШКА ПОБЕДЫ
-       ============================================================ */
+    /* ПЛАШКА ПОБЕДЫ */
     function showVictory(team) {
         var winnerName = teamNames[team];
 
@@ -1979,16 +2048,23 @@
         $("btnVictoryClose").textContent = t("ok");
 
         var setsHtml = "";
-        for (var i = 0; i < games.length; i++) {
-            var a = games[i][0];
-            var b = games[i][1];
-            if (a === 0 && b === 0 && i > currentSet) continue;
-            var winnerClass = (a > b) ? "winner" : "";
-            setsHtml += '<div class="victory-set-row">';
-            setsHtml += '<span class="victory-set-label">' + t("setShort") + ' ' + (i + 1) + '</span>';
-            setsHtml += '<span class="victory-set-score ' + winnerClass + '">' + a + ' : ' + b + '</span>';
-            setsHtml += '</div>';
+
+        if (currentFormat === "classic") {
+            for (var i = 0; i < games.length; i++) {
+                var a = games[i][0];
+                var b = games[i][1];
+                if (a === 0 && b === 0 && i > currentSet) continue;
+                var wc = (a > b) ? "winner" : "";
+                setsHtml += '<div class="victory-set-row">';
+                setsHtml += '<span class="victory-set-label">' + t("setShort") + ' ' + (i + 1) + '</span>';
+                setsHtml += '<span class="victory-set-score ' + wc + '">' + a + ' : ' + b + '</span>';
+                setsHtml += '</div>';
+            }
+        } else {
+            /* Американо — финальный счёт */
+            setsHtml += '<div class="victory-final-score">' + points[0] + ' : ' + points[1] + '</div>';
         }
+
         $("victorySetsList").innerHTML = setsHtml;
 
         var playersHtml = "";
@@ -2005,8 +2081,7 @@
         var dur = getMatchDuration();
         var mins = Math.floor(dur / 60);
         var secs = dur % 60;
-        var timeStr = t("victoryTime") + ': ' + mins + ':' + pad2(secs);
-        $("victoryTime").textContent = timeStr;
+        $("victoryTime").textContent = t("victoryTime") + ': ' + mins + ':' + pad2(secs);
 
         $("victoryOverlay").classList.add("open");
     }
@@ -2094,7 +2169,9 @@
             match.formatOptions = {
                 autoServe: formatOptions.americano.autoServe,
                 goldenPoint: formatOptions.americano.goldenPoint,
-                goldenScore: formatOptions.americano.goldenScore
+                goldenScore: formatOptions.americano.goldenScore,
+                target: formatOptions.americano.target,
+                winByTwo: formatOptions.americano.winByTwo
             };
         }
 
@@ -2141,9 +2218,7 @@
             var dateStr = formatDateTime(m.startTime) + " → " + formatTimeOnly(m.endTime);
             var players1 = m.players[0] + ", " + m.players[1];
             var players2 = m.players[2] + ", " + m.players[3];
-            var formatTag = (m.format === "classic")
-                ? t("formatTagClassic")
-                : t("formatTagAmericano");
+            var formatTag = (m.format === "classic") ? t("formatTagClassic") : t("formatTagAmericano");
 
             html += '<div class="match-card">';
             html += '<button type="button" class="match-delete" data-id="' + m.id + '" title="Delete">&#x2715;&#xFE0E;</button>';
@@ -2179,7 +2254,6 @@
 
             html += '<div class="match-players">' + escapeHtml(players1) + ' — ' + escapeHtml(players2) + '</div>';
 
-            /* Время матча */
             if (m.duration && m.duration > 0) {
                 html += '<div class="match-time">⏱ ' + formatDurationShort(m.duration) + '</div>';
             }
@@ -2372,6 +2446,8 @@
         $("optAutoServeLabel").textContent = t("optAutoServe");
         $("optStdGoldenLabel").textContent = t("optStdGolden");
         $("stdGoldenScoreLabel").textContent = t("stdGoldenScoreLabel");
+        $("stdTargetLabel").textContent = t("stdTargetLabel");
+        $("optWinByTwoLabel").textContent = t("optWinByTwo");
 
         $("toggleTimerLabel").textContent = t("toggleTimer");
         $("toggleSwitchLabel").textContent = t("toggleSwitch");
@@ -2441,7 +2517,6 @@
     function startTimer() {
         if (timerRunning) return;
         timerRunning = true;
-        /* Фиксируем момент первого запуска таймера */
         if (timerStartTime === null) {
             timerStartTime = Date.now() - timerSeconds * 1000;
         }
@@ -2486,6 +2561,14 @@
         saveState();
     }
 
+    function updatePresetActive() {
+        var btns = document.querySelectorAll(".preset-btn");
+        for (var i = 0; i < btns.length; i++) {
+            var val = parseInt(btns[i].getAttribute("data-preset"), 10);
+            btns[i].classList.toggle("active", val === formatOptions.americano.target);
+        }
+    }
+
     function applyFormatUI() {
         $("formatClassic").classList.toggle("selected", currentFormat === "classic");
         $("formatAmericano").classList.toggle("selected", currentFormat === "americano");
@@ -2505,6 +2588,10 @@
         $("stdGoldenScoreInput").value = formatOptions.americano.goldenScore;
         $("stdGoldenScoreField").style.display =
             formatOptions.americano.goldenPoint ? "block" : "none";
+
+        $("stdTargetInput").value = formatOptions.americano.target;
+        $("optWinByTwo").classList.toggle("on", formatOptions.americano.winByTwo);
+        updatePresetActive();
     }
 
     function setFormat(fmt) {
@@ -2680,6 +2767,8 @@
                     if (typeof a.autoServe === "boolean") formatOptions.americano.autoServe = a.autoServe;
                     if (typeof a.goldenPoint === "boolean") formatOptions.americano.goldenPoint = a.goldenPoint;
                     if (typeof a.goldenScore === "string") formatOptions.americano.goldenScore = a.goldenScore;
+                    if (typeof a.target === "number" && a.target > 0) formatOptions.americano.target = a.target;
+                    if (typeof a.winByTwo === "boolean") formatOptions.americano.winByTwo = a.winByTwo;
                 }
             }
 
@@ -2704,7 +2793,6 @@
         $("btnReset").addEventListener("click", resetGame);
         $("btnSettings").addEventListener("click", openSettings);
 
-        /* Таймер: тап по всей плашке = пауза/продолжить */
         $("timerBar").addEventListener("click", toggleTimer);
 
         $("btnSaveMatchMenu").addEventListener("click", saveCurrentMatch);
@@ -2780,6 +2868,35 @@
             saveState();
         });
 
+        /* Пресеты очков */
+        var presetBtns = document.querySelectorAll(".preset-btn");
+        for (var p = 0; p < presetBtns.length; p++) {
+            (function (btn) {
+                btn.addEventListener("click", function () {
+                    var val = parseInt(btn.getAttribute("data-preset"), 10);
+                    formatOptions.americano.target = val;
+                    $("stdTargetInput").value = val;
+                    updatePresetActive();
+                    saveState();
+                });
+            })(presetBtns[p]);
+        }
+
+        $("stdTargetInput").addEventListener("input", function () {
+            var v = parseInt(this.value, 10);
+            if (v > 0 && v < 1000) {
+                formatOptions.americano.target = v;
+                updatePresetActive();
+                saveState();
+            }
+        });
+
+        $("optWinByTwo").addEventListener("click", function () {
+            this.classList.toggle("on");
+            formatOptions.americano.winByTwo = this.classList.contains("on");
+            saveState();
+        });
+
         $("optAutoServe").addEventListener("click", function () {
             this.classList.toggle("on");
             formatOptions.americano.autoServe = this.classList.contains("on");
@@ -2820,6 +2937,7 @@
         localStorage.removeItem("padel_score_v18");
         localStorage.removeItem("padel_score_v19");
         localStorage.removeItem("padel_score_v20");
+        localStorage.removeItem("padel_score_v21");
     } catch (e) {}
 
     bind();
